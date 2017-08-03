@@ -21,7 +21,7 @@ After running the above command
 ### Configuring the Interpreter
 Set the config `solr.zkhost ` in the Solr Interpreter settings. This should point to the zkhost of SolrCloud cluster
 
-#### Commands list
+### Commands list
 List the collections in the SolrCloud
 Usage: `list`
 
@@ -45,6 +45,6 @@ Usage: `stream {stream-expr}`
 Issue an Solr SQL query and display the results as a table
 Usage: `sql {sql-string}`
 
-Example with all possible commands typed out:
+### Example
 
 ![screenshot](http://i.imgur.com/DmNIj3T.png)
