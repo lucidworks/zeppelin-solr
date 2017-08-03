@@ -15,20 +15,28 @@ Set the config `solr.zkhost ` in the Solr Interpreter settings. This should poin
 
 #### list
 List the collections in the SolrCloud
-![list collections](https://raw.githubusercontent.com/kiranchitturi/zeppelin-solr/master/images/collections-list.png)
+Usage: `list`
 
 #### use
-Set a collection to use in the notebook. This has to be performed before any other commands
-![use collection](https://raw.githubusercontent.com/kiranchitturi/zeppelin-solr/master/images/use-command.png)
+Set a collection to use in the notebook. Displays the defined fields that have data with their type
+Usage: `use {collection_name}`
 
 #### search
-![search command](https://raw.githubusercontent.com/kiranchitturi/zeppelin-solr/master/images/search-command.png)
+Issue a search query and have the results displayed as table
+Usage: `search {query-params}`
 
-### facet
-![Facet command](https://raw.githubusercontent.com/kiranchitturi/zeppelin-solr/master/images/facet-command.png)
+#### facet
+Issue a query with facet fields and display the facet counts
+Usage: `search {query-params}`
 
 #### stream
-![Stream command](https://raw.githubusercontent.com/kiranchitturi/zeppelin-solr/master/images/stream-command.png)
+Issue a streaming expression query and display the output as a table
+Usage: `stream {stream-expr}`
 
 #### sql
-![sql command](https://raw.githubusercontent.com/kiranchitturi/zeppelin-solr/master/images/sql-command.png)
+Issue an Solr SQL query and display the results as a table
+Usage: `sql {sql-string}`
+
+Example with all possible commands typed out:
+
+![screenshot](http://i.imgur.com/DmNIj3T.png)
