@@ -23,26 +23,32 @@ Set the config `solr.zkhost ` in the Solr Interpreter settings. This should poin
 
 ### Commands list
 List the collections in the SolrCloud
+
 Usage: `list`
 
 #### use
 Set a collection to use in the notebook. Displays the defined fields that have data with their type
+
 Usage: `use {collection_name}`
 
 #### search
 Issue a search query and have the results displayed as table
+
 Usage: `search {query-params}`
 
 #### facet
 Issue a query with facet fields and display the facet counts
+
 Usage: `search {query-params}`
 
 #### stream
 Issue a streaming expression query and display the output as a table
+
 Usage: `stream {stream-expr}`
 
 #### sql
 Issue an Solr SQL query and display the results as a table
+
 Usage: `sql {sql-string}`
 
 ### Example
