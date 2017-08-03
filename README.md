@@ -9,8 +9,22 @@
   5. stream {expr}
   6. sql {SQL statement}
 
+### Installation
+1. Download and untar [Apache Zeppelin](https://zeppelin.apache.org/download.html) distribution if you don't have it already (Go lite or all)
+2. Install this interpreter via command
+
+```apple js
+./bin/install-interpreter.sh --name zeppelin-solr --artifact com.lucidworks.zeppelin:zeppelin-solr:0.0.1-beta1
+```
+
+After running the above command
+
+1. Restart Zeppelin
+2. Create interpreter setting in 'Interpreter' menu on Zeppelin GUI
+
 ### Configuring the Interpreter
 Set the config `solr.zkhost ` in the Solr Interpreter settings. This should point to the zkhost of SolrCloud cluster
+
 
 
 #### list
