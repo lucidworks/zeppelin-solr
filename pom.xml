@@ -8,9 +8,35 @@
     <version>0.1.0-SNAPSHOT</version>
     <name>Zeppelin: Apache Solr interpreter</name>
     <description>Zeppelin Solr support</description>
-
+    <url>https://github.com/LucidWorks/zeppelin-solr</url>
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+            <comments>A business-friendly OSS license</comments>
+        </license>
+    </licenses>
+    <developers>
+        <developer>
+            <name>Lucidworks</name>
+            <organization>Lucidworks</organization>
+            <organizationUrl>www.lucidworks.com</organizationUrl>
+        </developer>
+    </developers>
+    <scm>
+        <connection>scm:git:git@github.com:LucidWorks/zeppelin-solr.git</connection>
+        <developerConnection>scm:git:git@github.com:LucidWorks/zeppelin-solr.git</developerConnection>
+        <url>https://github.com/LucidWorks/zeppelin-solr</url>
+    </scm>
+    <distributionManagement>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+    </distributionManagement>
     <properties>
-        <solr.version>6.3.0</solr.version>
+        <solr.version>6.6.0</solr.version>
         <scala.version>2.10.5</scala.version>
         <scala.binary.version>2.10</scala.binary.version>
         <guava.version>15.0</guava.version>
@@ -18,6 +44,42 @@
         <plugin.compiler.version>3.1</plugin.compiler.version>
     </properties>
 
+    <profiles>
+        <profile>
+            <id>release</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <version>2.10.3</version>
+                        <executions>
+                            <execution>
+                                <id>attach-javadocs</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>1.6</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
     <dependencies>
         <dependency>
             <groupId>com.google.guava</groupId>
