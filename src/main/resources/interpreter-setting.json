@@ -2,7 +2,7 @@
   {
     "group": "solr",
     "name": "solr",
-    "className": "org.apache.zeppelin.solr.SolrInterpreter",
+    "className": "com.lucidworks.zeppelin.solr.SolrInterpreter",
     "properties": {
       "solr.zkhost": {
         "envName": null,
