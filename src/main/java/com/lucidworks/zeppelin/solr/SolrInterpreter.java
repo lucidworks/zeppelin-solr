@@ -1,5 +1,6 @@
 package com.lucidworks.zeppelin.solr;
 
+import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
 import org.apache.zeppelin.annotation.ZeppelinApi;
 import org.apache.zeppelin.interpreter.Interpreter;
@@ -8,6 +9,8 @@ import org.apache.zeppelin.interpreter.InterpreterResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Properties;
 
 
@@ -26,6 +29,9 @@ public class SolrInterpreter extends Interpreter {
     super(property);
   }
   private String collection;
+
+  private static final List<String> COMMANDS = Arrays.asList(
+      "list", "use", "search", "facet", "stream", "sql");
 
   @ZeppelinApi
   public void open() {
@@ -66,11 +72,14 @@ public class SolrInterpreter extends Interpreter {
     }
 
     if ("search".equals(args[0])) {
+      if (collection == null || lukeResponse == null) returnCollectionNull();
       if (args.length == 2) {
           try {
             return SolrQuerySupport.doSearchQuery(args[1], lukeResponse, solrClient, collection);
           } catch (Exception e) {
-            return new InterpreterResult(InterpreterResult.Code.INCOMPLETE, InterpreterResult.Type.TEXT, e.getMessage());
+            logger.error("Exception processing query. Exception: " + e.getMessage());
+            e.printStackTrace();
+            return new InterpreterResult(InterpreterResult.Code.ERROR, InterpreterResult.Type.TEXT, "Error processing query. Exception: " + e.getMessage());
           }
       } else {
         String msg = "Specify the query params to search with. Example: search q=Fellas&fq=genre:action";
@@ -79,6 +88,7 @@ public class SolrInterpreter extends Interpreter {
     }
 
     if ("facet".equals(args[0])) {
+      if (collection == null) returnCollectionNull();
       if (args.length == 2) {
         try {
           return SolrQuerySupport.doFacetQuery(args[1], solrClient, collection);
@@ -92,6 +102,7 @@ public class SolrInterpreter extends Interpreter {
     }
 
     if (isStreamOrSql(args[0])) {
+      if (collection == null) returnCollectionNull();
       if (args.length > 1) {
         try {
           return SolrQuerySupport.doStreamingQuery(st, solrClient, collection, args[0]);
@@ -104,7 +115,7 @@ public class SolrInterpreter extends Interpreter {
       }
     }
 
-    return new InterpreterResult(InterpreterResult.Code.INCOMPLETE, "Unknown command: " + args);
+    return new InterpreterResult(InterpreterResult.Code.INCOMPLETE, "Unknown command: " + st + ". List of allowed commands: " + COMMANDS);
   }
 
   public boolean isStreamOrSql(String arg) {
@@ -121,5 +132,13 @@ public class SolrInterpreter extends Interpreter {
   @Override
   public int getProgress(InterpreterContext context) {
     return 0;
+  }
+
+  public SolrClient getCloudClient() {
+    return this.solrClient;
+  }
+
+  public InterpreterResult returnCollectionNull() {
+      return new InterpreterResult(InterpreterResult.Code.INCOMPLETE, InterpreterResult.Type.TEXT, "Set collection to use with 'use {collection}' command");
   }
 }

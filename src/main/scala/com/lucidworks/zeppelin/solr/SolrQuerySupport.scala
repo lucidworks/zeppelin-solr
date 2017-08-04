@@ -288,6 +288,7 @@ object SolrQuerySupport {
       interpreterResult.add(InterpreterResult.Type.TABLE, stringBuilder.toString())
       interpreterResult.add(InterpreterResult.Type.HTML, s"<font color=blue>Number of results: ${streamingResultsIterator.getNumDocs}.</font>")
     } else {
+      logger.info(s"Zero results for query ${solrQuery}")
       interpreterResult.add(InterpreterResult.Type.HTML, s"<font color=red>Zero results for the query.</font>")
     }
     interpreterResult
@@ -340,7 +341,7 @@ object SolrQuerySupport {
     } else if (queryType.equals("sql")) {
       query.set("sql", streamingExpression.substring(queryType.length+1).replaceAll("\\s+", " "))
       query.set("qt", "/sql")
-      logger.info(s"Solr query with SQL: ${query}")
+      logger.info(s"Solr query with SQL statement: ${query}")
     }
 
     val httpClient = SolrSupport.getHttpSolrClient(SolrSupport.getSolrBaseUrl(solrClient.getZkHost) + collection)
@@ -369,7 +370,7 @@ object SolrQuerySupport {
       interpreterResult.add(InterpreterResult.Type.HTML, s"<font color=red>Zero results for the query.</font>")
     } else {
       interpreterResult.add(InterpreterResult.Type.TABLE, stringBuilder.toString())
-      interpreterResult.add(InterpreterResult.Type.HTML, s"<font color=blue>Number of docs in collection: ${streamingIterator.getNumDocs}.</font>")
+      interpreterResult.add(InterpreterResult.Type.HTML, s"<font color=blue>Number of results: ${streamingIterator.getNumDocs}.</font>")
     }
     interpreterResult
   }
