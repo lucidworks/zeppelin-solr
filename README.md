@@ -1,6 +1,6 @@
 # Zeppelin Solr Interpreter
 
-* Interpreter built with SolrCloud backend and allows user to issue Solr queries and display the results in Zeppelin UI
+* Interpreter built with Apache Solr as backend and allows user to issue Solr queries and display results in the Zeppelin UI
 
 ### Installation
 1. Download and untar [Apache Zeppelin](https://zeppelin.apache.org/download.html) distribution if you don't have it already (Go lite or all)
@@ -14,7 +14,7 @@ After running the above command
 
 1. Restart Zeppelin
 2. Create interpreter setting in 'Interpreter' menu on Zeppelin GUI
-3. Create a notebook with the 'solr' interpreter
+3. Create a notebook with the 'solr' interpreter or configure the existing 'solr' interpreter to point to zkhost of SolrCloud
 
 ![create-settings](https://raw.githubusercontent.com/lucidworks/zeppelin-solr/master/images/create-interp-setting.png)
 
