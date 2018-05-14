@@ -8,7 +8,7 @@
         "envName": null,
         "propertyName": "solr.zkhost",
         "defaultValue": "localhost:9983",
-        "description": "Zookeeper Host string of SolrCloud instance. Default=localhost:9983"
+        "description": "The ZooKeeper Host connection string for the SolrCloud cluster."
       }
     },
     "editor": {
