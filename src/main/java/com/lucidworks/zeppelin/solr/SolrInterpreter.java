@@ -72,7 +72,7 @@ public class SolrInterpreter extends Interpreter {
     }
 
     if ("search".equals(args[0])) {
-      if (collection == null || lukeResponse == null) returnCollectionNull();
+      if (collection == null || lukeResponse == null) return returnCollectionNull();
       if (args.length == 2) {
           try {
             return SolrQuerySupport.doSearchQuery(args[1], lukeResponse, solrClient, collection);

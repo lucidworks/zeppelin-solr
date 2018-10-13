@@ -41,7 +41,7 @@ class SolrInterpreterSettingsTest extends TestSuiteBuilder {
     val solrInterpreter = new SolrInterpreter(properties)
     solrInterpreter.open()
 
-    val result = intercept[SolrException](solrInterpreter.interpret("use abc", null))
+    val result = intercept[IllegalArgumentException](solrInterpreter.interpret("use abc", null))
   }
 
 }
