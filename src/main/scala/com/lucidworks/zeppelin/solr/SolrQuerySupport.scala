@@ -360,7 +360,6 @@ object SolrQuerySupport {
         doc.keySet.foreach(s => stringBuilder.++=(s"${s}\t"))
         stringBuilder.++=(s"\n")
       }
-      logger.info(s"Doc: ${doc}")
       doc.foreach(f => {
         f._2 match {
           case ul: java.util.Collection[_] => stringBuilder.++=(s"${StringUtils.join(ul, ",")}\t")
