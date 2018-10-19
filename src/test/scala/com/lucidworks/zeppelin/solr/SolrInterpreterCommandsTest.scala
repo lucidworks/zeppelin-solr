@@ -81,7 +81,7 @@ class SolrInterpreterCommandsTest extends CollectionSuiteBuilder {
     solrInterpreter.open()
 
     val result = solrInterpreter.interpret(s"search q=*:*", null)
-    assert(result.code().eq(InterpreterResult.Code.ERROR))
+    assert(result.code().eq(InterpreterResult.Code.INCOMPLETE))
   }
 
   test("Test facet command") {
@@ -91,7 +91,7 @@ class SolrInterpreterCommandsTest extends CollectionSuiteBuilder {
     solrInterpreter.open()
 
     solrInterpreter.interpret(s"use ${collections(0)}", null)
-    val result = solrInterpreter.interpret(s"facet q=*:*&facet=true&facet.field=field1_s", null)
+    val result = solrInterpreter.interpret(s"facet q=*:*&facet.field=field1_s", null)
     assert(result.code().eq(InterpreterResult.Code.SUCCESS))
     assert(result.message().size() == 2)
     val msgs = result.message()
@@ -159,5 +159,4 @@ class SolrInterpreterCommandsTest extends CollectionSuiteBuilder {
       } ))
     })
   }
-
 }

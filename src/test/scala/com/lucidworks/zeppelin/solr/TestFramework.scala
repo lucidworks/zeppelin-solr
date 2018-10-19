@@ -1,8 +1,10 @@
 package com.lucidworks.zeppelin.solr
 
 import java.io.File
+import java.util.Collections
 
 import org.apache.commons.io.FileUtils
+import org.apache.solr.SolrTestCaseJ4.CloudSolrClientBuilder
 import org.apache.solr.client.solrj.impl.CloudSolrClient
 import org.apache.solr.cloud.MiniSolrCloudCluster
 import org.eclipse.jetty.servlet.ServletHolder
@@ -40,7 +42,7 @@ trait SolrCloudTestBuilder extends BeforeAndAfterAll {
 
     cluster = new MiniSolrCloudCluster(1, null /* hostContext */ ,
       testWorkingDir.toPath, solrXmlContents, extraServlets, null /* extra filters */)
-    cloudClient = new CloudSolrClient(cluster.getZkServer.getZkAddress, true)
+    cloudClient = cluster.getSolrClient
     cloudClient.connect()
 
     assertTrue(!cloudClient.getZkStateReader.getClusterState.getLiveNodes.isEmpty)

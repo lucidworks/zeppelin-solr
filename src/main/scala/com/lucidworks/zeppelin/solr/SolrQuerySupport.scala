@@ -7,22 +7,23 @@ import com.lucidworks.zeppelin.solr.util.QueryConstants
 import org.apache.commons.lang.StringUtils
 import org.apache.solr.client.solrj.SolrRequest.METHOD
 import org.apache.solr.client.solrj._
-import org.apache.solr.client.solrj.impl.{CloudSolrClient, StreamingBinaryResponseParser}
-import org.apache.solr.client.solrj.request.{LukeRequest, QueryRequest}
+import org.apache.solr.client.solrj.impl.{CloudSolrClient, HttpSolrClient, StreamingBinaryResponseParser}
+import org.apache.solr.client.solrj.request.{CollectionAdminRequest, LukeRequest, QueryRequest}
 import org.apache.solr.client.solrj.response.FacetField.Count
+import org.apache.solr.client.solrj.response.LukeResponse.FieldInfo
 import org.apache.solr.client.solrj.response.QueryResponse
 import org.apache.solr.common.params.SolrParams
 import org.apache.solr.common.util.NamedList
 import org.apache.zeppelin.interpreter.InterpreterResult
-import com.lucidworks.zeppelin.solr.util.JsonUtil._
-import org.json4s.JsonAST.{JArray, JString, JValue}
 import org.slf4j.LoggerFactory
 
+import scala.collection.JavaConverters._
 import scala.collection.JavaConversions.{asScalaBuffer, mapAsScalaMap}
-import scala.collection.mutable.ListBuffer
+import scala.collection.mutable
 
 case class SolrField(name: String, fieldType: String, docs: Int)
-case class SolrLukeResponse(numDocs: Integer, solrFields: List[SolrField])
+case class SolrLukeResponse(numDocs: Integer, fieldInfo: Map[String, (String, Long)])
+
 case class SolrFieldMeta(
                           fieldType: String,
                           dynamicBase: Option[String],
@@ -36,24 +37,8 @@ object SolrQuerySupport {
   val logger = LoggerFactory.getLogger(SolrQuerySupport.getClass)
 
   def getCollectionsList(zkHost: String): List[String] = {
-    val baseUrl = SolrSupport.getSolrBaseUrl(zkHost)
-    val collectionsListUrl = baseUrl + "admin/collections?action=LIST&wt=json"
-
-    val jsonOut: JValue = SolrJsonSupport.getJson(collectionsListUrl)
-
-    if (jsonOut.has("collections")) {
-      jsonOut \ "collections" match {
-        case list: JArray => {
-          val arrayList: ListBuffer[String] = new ListBuffer[String]
-          list.arr.foreach {
-            case s: JString => arrayList.+=(s.s)
-          }
-          return arrayList.toList
-        }
-        case _ => return List.empty
-      }
-    }
-    List.empty
+    val solrClient = SolrSupport.getCachedCloudClient(zkHost)
+    CollectionAdminRequest.listCollections(solrClient).asScala.toList
   }
 
   def getCollectionsListAsString(zkHost: String): String = {
@@ -204,32 +189,50 @@ object SolrQuerySupport {
   }
 
   def getFieldsFromLuke(zkHost: String, collection: String): SolrLukeResponse = {
-    val solrFields: ListBuffer[SolrField] = ListBuffer.empty
-    val cloudClient = SolrSupport.getCachedCloudClient(zkHost)
+    val shardList = SolrSupport.buildShardList(zkHost, collection, true)
+    val fieldMap: mutable.Map[String, (String, Long)] = mutable.Map.empty[String, (String, Long)]
+    var numDocs = 0
+    shardList.foreach(shard => {
+      val randomReplica = SolrSupport.randomReplica(shard)
+      val replicaHttpClient = SolrSupport.getCachedHttpSolrClient(randomReplica.replicaUrl, zkHost)
+      val fieldsFromLukeShard = getFieldsFromLukePerShard(zkHost, replicaHttpClient)
+      fieldsFromLukeShard._1.foreach {
+        case(fieldName, fieldInfo) =>
+          val currValue = fieldMap.get(fieldName)
+          if (currValue.isDefined) {
+            fieldMap.put(fieldName, (currValue.get._1, currValue.get._2 + fieldInfo.getDocs))
+          } else {
+            fieldMap.put(fieldName, (fieldInfo.getType, fieldInfo.getDocs))
+          }
+      }
+      numDocs += fieldsFromLukeShard._2
+    })
+    SolrLukeResponse(numDocs, fieldMap.toMap)
+  }
+
+  def getFieldsFromLukePerShard(zkHost: String, httpSolrClient: HttpSolrClient): (Map[String, FieldInfo], Int) = {
     val lukeRequest = new LukeRequest()
     lukeRequest.setNumTerms(0)
-    val lukeResponse = lukeRequest.process(cloudClient, collection)
+    val lukeResponse = lukeRequest.process(httpSolrClient)
     if (lukeResponse.getStatus != 0) {
       throw new RuntimeException(
         "Solr request returned with status code '" + lukeResponse.getStatus + "'. Response: '" + lukeResponse.getResponse.toString)
     }
-    mapAsScalaMap(lukeResponse.getFieldInfo).foreach(f => {
-      solrFields.+=(SolrField(f._1, f._2.getType, f._2.getDocs))
-    })
-    SolrLukeResponse(lukeResponse.getNumDocs, solrFields.toList)
+    (lukeResponse.getFieldInfo.toMap, lukeResponse.getNumDocs)
   }
 
   def transformLukeResponseToInterpeterResponse(lukeResponse: SolrLukeResponse): InterpreterResult = {
-    val solrFields = lukeResponse.solrFields
-    if (solrFields.isEmpty) {
+    val fieldInfo = lukeResponse.fieldInfo
+    if (fieldInfo.isEmpty) {
       return new InterpreterResult(InterpreterResult.Code.ERROR, InterpreterResult.Type.TEXT, "Empty luke response. Make sure you have documents in the collection")
     }
     val interpreterResult = new InterpreterResult(InterpreterResult.Code.SUCCESS)
     val stringBuilder = new StringBuilder
     stringBuilder.++=("Name\tType\tDocs\n")
-    for (solrField <- solrFields) {
-      stringBuilder.++=(s"${solrField.name}\t${solrField.fieldType}\t${solrField.docs}\t")
-      stringBuilder.++=("\n")
+    lukeResponse.fieldInfo.foreach {
+      case(fieldName, (fieldType, docCount)) =>
+        stringBuilder.++=(s"$fieldName\t$fieldType\t$docCount\t")
+        stringBuilder.++=("\n")
     }
     interpreterResult.add(InterpreterResult.Type.TABLE, stringBuilder.toString())
     interpreterResult.add(InterpreterResult.Type.HTML, s"<font color=blue>Number of docs in collection: ${lukeResponse.numDocs}.</font>")
@@ -254,27 +257,27 @@ object SolrQuerySupport {
     }
 
     val userFields = solrQuery.getFields
-    var fieldsList = lukeResponse.solrFields
+    var fieldsList = lukeResponse.fieldInfo.keySet.toList
     if (userFields != null) {
       val userFieldsArray = List(userFields.split(","):_*)
       logger.info(s"User requested fields ${userFieldsArray}")
-      fieldsList = fieldsList.filter(p => userFieldsArray.contains(p.name))
+      fieldsList = fieldsList.filter(p => userFieldsArray.contains(p))
       if (userFieldsArray.contains("score")) {
-        fieldsList =  SolrField("score", "", 0) :: fieldsList
+        fieldsList =  "score" :: fieldsList
       }
     }
 
     fieldsList.zipWithIndex.foreach( sf => {
       if (sf._2 != fieldsList.size-1) {
-        stringBuilder.++=(s"${sf._1.name}\t")
+        stringBuilder.++=(s"${sf._1}\t")
       } else {
-        stringBuilder.++=(s"${sf._1.name}\n")
+        stringBuilder.++=(s"${sf._1}\n")
       }
     })
     while (streamingResultsIterator.hasNext) {
       val doc = streamingResultsIterator.next()
       fieldsList.zipWithIndex.foreach( sf => {
-        val fieldValues: java.util.Collection[_] = doc.getFieldValues(sf._1.name)
+        val fieldValues: java.util.Collection[_] = doc.getFieldValues(sf._1)
         if (sf._2 != fieldsList.size-1) {
           stringBuilder.++=(StringUtils.join(fieldValues, ","))
           stringBuilder.++=("\t")
@@ -300,6 +303,7 @@ object SolrQuerySupport {
       collection: String): InterpreterResult = {
     val solrQuery = SolrQuerySupport.toQuery(queryParamString)
     solrQuery.setRows(0)
+    solrQuery.setFacet(true)
 
     val queryResponse = solrClient.query(collection, solrQuery)
     if (queryResponse.getStatus != 0) {
@@ -307,7 +311,7 @@ object SolrQuerySupport {
     }
 
     val facetFields = queryResponse.getFacetFields
-    if (facetFields.isEmpty) {
+    if (facetFields == null || facetFields.isEmpty) {
       return new InterpreterResult(InterpreterResult.Code.SUCCESS, InterpreterResult.Type.HTML, s"<font color=red>No facets to display.</font>")
     }
 
@@ -344,9 +348,9 @@ object SolrQuerySupport {
       logger.info(s"Solr query with SQL statement: ${query}")
     }
 
-    val httpClient = SolrSupport.getHttpSolrClient(SolrSupport.getSolrBaseUrl(solrClient.getZkHost) + collection)
+    val httpClient = SolrSupport.getCachedHttpSolrClient(SolrSupport.getSolrBaseUrl(solrClient.getZkHost) + collection, solrClient.getZkHost)
     val streamingIterator = new StreamingExpressionResultIterator(solrClient, httpClient, collection, query)
-    val interpreterResult: InterpreterResult = new InterpreterResult(InterpreterResult.Code.SUCCESS)
+
     val stringBuilder = new StringBuilder
 
     while (streamingIterator.hasNext) {
@@ -359,13 +363,17 @@ object SolrQuerySupport {
       doc.foreach(f => {
         f._2 match {
           case ul: java.util.Collection[_] => stringBuilder.++=(s"${StringUtils.join(ul, ",")}\t")
-          case m: java.util.Map[_, _] => // ignore maps for now
+          case m: java.util.Map[_, _] => logger.info("Map ignored")// ignore maps for now
           case a: AnyRef => stringBuilder.++=(s"${String.valueOf(a)}\t")
+          case _ => stringBuilder.++=("")
         }
       })
       stringBuilder.++=(s"\n")
     }
-//    logger.info(s"output: ${stringBuilder.toString()}")
+    if (logger.isDebugEnabled()) {
+      logger.debug(s"output: ${stringBuilder.toString()}")
+    }
+    val interpreterResult: InterpreterResult = new InterpreterResult(InterpreterResult.Code.SUCCESS)
     if (streamingIterator.getNumDocs == 0) {
       interpreterResult.add(InterpreterResult.Type.HTML, s"<font color=red>Zero results for the query.</font>")
     } else {

@@ -36,11 +36,11 @@
         </snapshotRepository>
     </distributionManagement>
     <properties>
-        <solr.version>6.6.0</solr.version>
-        <scala.version>2.10.5</scala.version>
-        <scala.binary.version>2.10</scala.binary.version>
+        <solr.version>7.5.0</solr.version>
+        <scala.version>2.11.8</scala.version>
+        <scala.binary.version>2.11</scala.binary.version>
         <guava.version>15.0</guava.version>
-        <zeppelin.version>0.7.2</zeppelin.version>
+        <zeppelin.version>0.8.0</zeppelin.version>
         <plugin.compiler.version>3.1</plugin.compiler.version>
     </properties>
 
@@ -116,12 +116,6 @@
             <artifactId>scalatest_${scala.binary.version}</artifactId>
             <version>2.2.1</version>
             <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.json4s</groupId>
-            <artifactId>json4s-jackson_2.10</artifactId>
-            <version>3.2.11</version>
         </dependency>
 
         <dependency>
