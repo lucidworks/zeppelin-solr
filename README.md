@@ -37,9 +37,9 @@ Issue a search query and have the results displayed as table
 Usage: `search {query-params}`
 
 #### facet
-Issue a query with facet fields and display the facet counts
+Issue a query with facet fields and display the facet counts. No need to explicitly add `facet=true` for these queries
 
-Usage: `search {query-params}`
+Usage: `facet {facet-params}`
 
 #### stream
 Issue a streaming expression query and display the output as a table
