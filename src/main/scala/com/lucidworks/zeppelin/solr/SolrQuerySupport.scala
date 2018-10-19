@@ -303,6 +303,7 @@ object SolrQuerySupport {
       collection: String): InterpreterResult = {
     val solrQuery = SolrQuerySupport.toQuery(queryParamString)
     solrQuery.setRows(0)
+    solrQuery.setFacet(true)
 
     val queryResponse = solrClient.query(collection, solrQuery)
     if (queryResponse.getStatus != 0) {
@@ -310,7 +311,7 @@ object SolrQuerySupport {
     }
 
     val facetFields = queryResponse.getFacetFields
-    if (facetFields.isEmpty) {
+    if (facetFields == null || facetFields.isEmpty) {
       return new InterpreterResult(InterpreterResult.Code.SUCCESS, InterpreterResult.Type.HTML, s"<font color=red>No facets to display.</font>")
     }
 
