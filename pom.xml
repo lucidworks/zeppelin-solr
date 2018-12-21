@@ -5,7 +5,7 @@
     <groupId>com.lucidworks.zeppelin</groupId>
     <artifactId>zeppelin-solr</artifactId>
     <packaging>jar</packaging>
-    <version>0.1.1</version>
+    <version>0.1.2-SNAPSHOT</version>
     <name>Zeppelin: Apache Solr interpreter</name>
     <description>Zeppelin Solr support</description>
     <url>https://github.com/LucidWorks/zeppelin-solr</url>
