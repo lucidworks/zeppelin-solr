@@ -84,7 +84,7 @@ class SolrInterpreterCommandsTest extends CollectionSuiteBuilder {
     assert(result.code().eq(InterpreterResult.Code.INCOMPLETE))
   }
 
-  test("Test facet command") {
+  test("Test facet command with use command") {
     val properties = new Properties()
     properties.put(SolrInterpreter.ZK_HOST, zkHost)
     val solrInterpreter = new SolrInterpreter(properties)
@@ -92,6 +92,26 @@ class SolrInterpreterCommandsTest extends CollectionSuiteBuilder {
 
     solrInterpreter.interpret(s"use ${collections(0)}", null)
     val result = solrInterpreter.interpret(s"facet q=*:*&facet.field=field1_s", null)
+    assert(result.code().eq(InterpreterResult.Code.SUCCESS))
+    assert(result.message().size() == 2)
+    val msgs = result.message()
+    val table = msgs.get(0)
+    assert(table.getType.eq(InterpreterResult.Type.TABLE))
+    val tableData = table.getData.split("\n")
+    assert(tableData.size == 21) // 10 docs + header_
+    val header = tableData(0)
+    val headerFields = header.split("\t")
+    assert(headerFields.size == 2)
+    assert(header.equals("field1_s\tCount"))
+  }
+
+  test("Test facet command without use command") {
+    val properties = new Properties()
+    properties.put(SolrInterpreter.ZK_HOST, zkHost)
+    val solrInterpreter = new SolrInterpreter(properties)
+    solrInterpreter.open()
+
+    val result = solrInterpreter.interpret(s"facet q=*:*&facet.field=field1_s&collection=${collections(0)}", null)
     assert(result.code().eq(InterpreterResult.Code.SUCCESS))
     assert(result.message().size() == 2)
     val msgs = result.message()

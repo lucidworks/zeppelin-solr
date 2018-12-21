@@ -102,6 +102,7 @@
             <artifactId>solr-core</artifactId>
             <version>${solr.version}</version>
             <type>jar</type>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.solr</groupId>

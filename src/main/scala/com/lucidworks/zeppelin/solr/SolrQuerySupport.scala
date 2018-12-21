@@ -240,11 +240,10 @@ object SolrQuerySupport {
   }
 
   def doSearchQuery(
-      queryParamString: String,
+      solrQuery: SolrQuery,
       lukeResponse: SolrLukeResponse,
       solrClient: SolrClient,
       collection: String): InterpreterResult = {
-    val solrQuery = SolrQuerySupport.toQuery(queryParamString)
     solrQuery.set("collection", collection)
     val streamingResultsIterator = new StreamingResultsIterator(solrClient, solrQuery)
     val interpreterResult: InterpreterResult = new InterpreterResult(InterpreterResult.Code.SUCCESS)
@@ -298,10 +297,9 @@ object SolrQuerySupport {
   }
 
   def doFacetQuery(
-      queryParamString: String,
+      solrQuery: SolrQuery,
       solrClient: SolrClient,
       collection: String): InterpreterResult = {
-    val solrQuery = SolrQuerySupport.toQuery(queryParamString)
     solrQuery.setRows(0)
     solrQuery.setFacet(true)
 

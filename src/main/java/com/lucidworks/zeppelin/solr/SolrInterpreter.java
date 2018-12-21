@@ -1,6 +1,7 @@
 package com.lucidworks.zeppelin.solr;
 
 import org.apache.solr.client.solrj.SolrClient;
+import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
 import org.apache.zeppelin.annotation.ZeppelinApi;
 import org.apache.zeppelin.interpreter.Interpreter;
@@ -72,31 +73,40 @@ public class SolrInterpreter extends Interpreter {
     }
 
     if ("search".equals(args[0])) {
-      if (collection == null || lukeResponse == null) return returnCollectionNull();
       if (args.length == 2) {
-          try {
-            return SolrQuerySupport.doSearchQuery(args[1], lukeResponse, solrClient, collection);
-          } catch (Exception e) {
-            logger.error("Exception processing query. Exception: " + e.getMessage());
-            e.printStackTrace();
-            return new InterpreterResult(InterpreterResult.Code.ERROR, InterpreterResult.Type.TEXT, "Error processing query. Exception: " + e.getMessage());
+        SolrQuery searchSolrQuery = SolrQuerySupport.toQuery(args[1]);
+        String overrideCollection = searchSolrQuery.get("collection", null);
+        if (overrideCollection == null && collection == null) return returnCollectionNull();
+        try {
+          if (overrideCollection != null) {
+            return SolrQuerySupport.doSearchQuery(searchSolrQuery, SolrQuerySupport.getFieldsFromLuke(zkHost, overrideCollection), solrClient, overrideCollection);
+          } else {
+            return SolrQuerySupport.doSearchQuery(searchSolrQuery, lukeResponse, solrClient, collection);
           }
+        } catch (Exception e) {
+          logger.error("Exception processing query. Exception: " + e.getMessage());
+          e.printStackTrace();
+          return new InterpreterResult(InterpreterResult.Code.ERROR, InterpreterResult.Type.TEXT, "Error processing query. Exception: " + e.getMessage());
+        }
       } else {
-        String msg = "Specify the query params to search with. Example: search q=Fellas&fq=genre:action";
+        String msg = "Specify the query params to search with. Example: search q=Fellas&fq=genre:action&collection=solr_collection";
         return new InterpreterResult(InterpreterResult.Code.INCOMPLETE, InterpreterResult.Type.TEXT, msg);
       }
     }
 
     if ("facet".equals(args[0])) {
-      if (collection == null) returnCollectionNull();
       if (args.length == 2) {
+        SolrQuery searchSolrQuery = SolrQuerySupport.toQuery(args[1]);
+        if (collection == null && searchSolrQuery.get("collection") == null) {
+          return returnCollectionNull();
+        }
         try {
-          return SolrQuerySupport.doFacetQuery(args[1], solrClient, collection);
+          return SolrQuerySupport.doFacetQuery(searchSolrQuery, solrClient, searchSolrQuery.get("collection", collection));
         } catch (Exception e) {
           return new InterpreterResult(InterpreterResult.Code.INCOMPLETE, InterpreterResult.Type.TEXT, e.getMessage());
         }
       } else {
-        String msg = "Specify the query params to facet with. Example: search q=text&facet=true&facet.field=genre";
+        String msg = "Specify the query params to facet with. Example: search q=text&facet=true&facet.field=genre&collection=solr_collection";
         return new InterpreterResult(InterpreterResult.Code.INCOMPLETE, InterpreterResult.Type.TEXT, msg);
       }
     }
@@ -139,6 +149,6 @@ public class SolrInterpreter extends Interpreter {
   }
 
   public InterpreterResult returnCollectionNull() {
-      return new InterpreterResult(InterpreterResult.Code.INCOMPLETE, InterpreterResult.Type.TEXT, "Set collection to use with 'use {collection}' command");
+      return new InterpreterResult(InterpreterResult.Code.INCOMPLETE, InterpreterResult.Type.TEXT, "Set collection to use with 'use {collection}' command or set collection in query params for search and facet commands");
   }
 }
