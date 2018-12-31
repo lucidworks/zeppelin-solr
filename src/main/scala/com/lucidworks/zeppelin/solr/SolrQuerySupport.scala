@@ -351,21 +351,29 @@ object SolrQuerySupport {
 
     val stringBuilder = new StringBuilder
 
+
     while (streamingIterator.hasNext) {
       val doc = mapAsScalaMap(streamingIterator.next())
       // Get field names from first doc and add them as headers
       if (streamingIterator.getNumDocs == 1) {
         doc.keySet.foreach(s => stringBuilder.++=(s"${s}\t"))
+        if (stringBuilder.length > 0) {
+          stringBuilder.deleteCharAt(stringBuilder.length - 1); // This efficiently removes the trailing tab.
+        }
         stringBuilder.++=(s"\n")
       }
+
       doc.foreach(f => {
         f._2 match {
           case ul: java.util.Collection[_] => stringBuilder.++=(s"${StringUtils.join(ul, ",")}\t")
-          case m: java.util.Map[_, _] => logger.info("Map ignored")// ignore maps for now
+          case m: java.util.Map[_, _] => logger.info("Map ignored") // ignore maps for now
           case a: AnyRef => stringBuilder.++=(s"${String.valueOf(a)}\t")
           case _ => stringBuilder.++=("")
         }
       })
+      if (stringBuilder.length > 0 && stringBuilder.charAt(stringBuilder.length - 1) == '\t') {
+        stringBuilder.deleteCharAt(stringBuilder.length - 1); // This efficiently removes the trailing tab.
+      }
       stringBuilder.++=(s"\n")
     }
     if (logger.isDebugEnabled()) {

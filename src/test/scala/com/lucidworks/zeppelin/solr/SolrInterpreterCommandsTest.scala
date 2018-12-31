@@ -143,7 +143,7 @@ class SolrInterpreterCommandsTest extends CollectionSuiteBuilder {
     val header = tableData(0)
     val headerFields = header.split("\t")
     assert(headerFields.size == 2)
-    assert(header.equals("field1_s\tfield3_i\t"))
+    assert(header.equals("field1_s\tfield3_i"))
     tableData.foreach(td => {
       val contents = td.split("\t")
       assert(contents.size == 2)
