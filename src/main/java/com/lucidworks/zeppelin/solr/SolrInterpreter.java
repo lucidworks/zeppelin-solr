@@ -113,11 +113,25 @@ public class SolrInterpreter extends Interpreter {
 
     if (isStreamOrSql(args[0])) {
       if (collection == null) returnCollectionNull();
-      if (args.length > 1) {
-        try {
-          return SolrQuerySupport.doStreamingQuery(st, solrClient, collection, args[0]);
-        } catch (Exception e) {
-          return new InterpreterResult(InterpreterResult.Code.INCOMPLETE, InterpreterResult.Type.TEXT, e.getMessage());
+      if (args.length > 1 || args[0].contains("(")) {
+        if(args[0].contains("(")) {
+          try {
+            return SolrQuerySupport.doStreamingQuery("stream "+st, solrClient, collection, "stream");
+          } catch (Exception e) {
+            return new InterpreterResult(InterpreterResult.Code.INCOMPLETE, InterpreterResult.Type.TEXT, e.getMessage());
+          }
+        } else if(args[0].equalsIgnoreCase("select")) {
+          try {
+            return SolrQuerySupport.doStreamingQuery("sql "+st, solrClient, collection, "sql");
+          } catch (Exception e) {
+            return new InterpreterResult(InterpreterResult.Code.INCOMPLETE, InterpreterResult.Type.TEXT, e.getMessage());
+          }
+        } else {
+          try {
+            return SolrQuerySupport.doStreamingQuery(st, solrClient, collection, args[0]);
+          } catch (Exception e) {
+            return new InterpreterResult(InterpreterResult.Code.INCOMPLETE, InterpreterResult.Type.TEXT, e.getMessage());
+          }
         }
       } else {
         String msg = "Specify the streaming expression. Example: stream {streaming expression}";
@@ -129,7 +143,7 @@ public class SolrInterpreter extends Interpreter {
   }
 
   public boolean isStreamOrSql(String arg) {
-    return arg.equals("stream") || arg.equals("sql");
+    return arg.equals("stream") || arg.equals("sql") || arg.contains("(") || arg.equalsIgnoreCase("select");
   }
   @Override
   public void cancel(InterpreterContext context) {}
