@@ -59,3 +59,14 @@ Usage: `sql {sql-string}`
 ### Example
 
 ![screenshot](http://i.imgur.com/DmNIj3T.png)
+
+
+### Setting up Intellij IDEA for this project
+
+1. clone the project to your local box
+2. Make sure scala plugin is enabled for IntelliJ
+3. In IntelliJ, click on 'File -> New -> Project from Existing Sources -> (Navigate to zeppelin-solr dir) -> **select pom.xml** -> click Open' 
+4. Go through the steps for creating the project
+5. Overwrite `.idea` project if the IDE prompts
+6. Once deps are resolved, click on `Build Project` to verify
+
