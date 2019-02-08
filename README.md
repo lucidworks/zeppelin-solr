@@ -7,7 +7,7 @@
 2. Install this interpreter via command
 
 ```apple js
-./bin/install-interpreter.sh --name solr --artifact com.lucidworks.zeppelin:zeppelin-solr:0.1.2
+./bin/install-interpreter.sh --name solr --artifact com.lucidworks.zeppelin:zeppelin-solr:0.1.3
 ```
 
 After running the above command
