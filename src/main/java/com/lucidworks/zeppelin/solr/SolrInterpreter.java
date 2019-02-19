@@ -2,7 +2,7 @@ package com.lucidworks.zeppelin.solr;
 
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
-import org.apache.solr.client.solrj.impl.CloudSolrClient;
+import org.apache.solr.client.solrj.impl.HttpSolrClient;
 import org.apache.zeppelin.annotation.ZeppelinApi;
 import org.apache.zeppelin.interpreter.Interpreter;
 import org.apache.zeppelin.interpreter.InterpreterContext;
@@ -21,24 +21,26 @@ import java.util.Properties;
 public class SolrInterpreter extends Interpreter {
 
   private static Logger logger = LoggerFactory.getLogger(SolrInterpreter.class);
-  public static final String ZK_HOST = "solr.zkhost";
+  public static final String BASE_URL = "solr.baseUrl";
 
-  private String zkHost;
-  private CloudSolrClient solrClient;
-  private SolrLukeResponse lukeResponse;
+  private String baseURL;
+  private HttpSolrClient solrClient;
   public SolrInterpreter(Properties property) {
     super(property);
   }
   private String collection;
+  private SolrLukeResponse lukeResponse;
 
   private static final List<String> COMMANDS = Arrays.asList(
-      "list", "use", "search", "facet", "stream", "sql");
+      "use", "search", "facet", "stream", "sql");
 
   @ZeppelinApi
   public void open() {
-    zkHost = getProperty(ZK_HOST);
-    logger.info("Connecting to Zookeeper host {}", zkHost);
-    solrClient = SolrSupport.getCachedCloudClient(zkHost);
+    baseURL = getProperty(BASE_URL);
+    logger.info("Connecting to Solr host {}", baseURL);
+    //Default to collection1
+    collection = "collection1";
+    solrClient = SolrSupport.getNewHttpSolrClient(baseURL+"/"+collection);
   }
 
   @ZeppelinApi
@@ -53,18 +55,19 @@ public class SolrInterpreter extends Interpreter {
     }
     String[] args = st.split(" ");
 
-    if ("list".equals(args[0])) {
-      return new InterpreterResult(InterpreterResult.Code.SUCCESS, InterpreterResult.Type.TEXT, SolrQuerySupport.getCollectionsListAsString(zkHost));
-    }
 
     if ("use".equals(args[0])) {
       if (args.length == 2) {
         collection = args[1];
-        lukeResponse = SolrQuerySupport.getFieldsFromLuke(zkHost, collection);
-        InterpreterResult result = SolrQuerySupport.transformLukeResponseToInterpeterResponse(lukeResponse);
-        if (result.code().equals(InterpreterResult.Code.SUCCESS)) {
-          result.add(InterpreterResult.Type.TEXT,  "Setting collection " + collection + " as default");
+        try {
+          solrClient.close();
+        } catch (Exception e) {
+          logger.error("Error closing connection", e);
         }
+        solrClient = SolrSupport.getNewHttpSolrClient(baseURL+"/"+collection);
+        lukeResponse = SolrQuerySupport.getFieldsFromLuke(solrClient, collection);
+        InterpreterResult result = new InterpreterResult(InterpreterResult.Code.SUCCESS);
+        result.add(InterpreterResult.Type.TEXT,  "Setting collection " + collection + " as default");
         return result;
       } else {
         String msg = "Specify the collection to use for this dashboard. Example: use {collection_name}";
@@ -75,14 +78,8 @@ public class SolrInterpreter extends Interpreter {
     if ("search".equals(args[0])) {
       if (args.length == 2) {
         SolrQuery searchSolrQuery = SolrQuerySupport.toQuery(args[1]);
-        String overrideCollection = searchSolrQuery.get("collection", null);
-        if (overrideCollection == null && collection == null) return returnCollectionNull();
         try {
-          if (overrideCollection != null) {
-            return SolrQuerySupport.doSearchQuery(searchSolrQuery, SolrQuerySupport.getFieldsFromLuke(zkHost, overrideCollection), solrClient, overrideCollection);
-          } else {
-            return SolrQuerySupport.doSearchQuery(searchSolrQuery, lukeResponse, solrClient, collection);
-          }
+          return SolrQuerySupport.doSearchQuery(searchSolrQuery, lukeResponse, solrClient, collection);
         } catch (Exception e) {
           logger.error("Exception processing query. Exception: " + e.getMessage());
           e.printStackTrace();
@@ -97,7 +94,7 @@ public class SolrInterpreter extends Interpreter {
     if ("facet".equals(args[0])) {
       if (args.length == 2) {
         SolrQuery searchSolrQuery = SolrQuerySupport.toQuery(args[1]);
-        if (collection == null && searchSolrQuery.get("collection") == null) {
+        if (collection == null) {
           return returnCollectionNull();
         }
         try {

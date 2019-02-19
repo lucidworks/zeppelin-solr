@@ -1,10 +1,8 @@
 package com.lucidworks.zeppelin.solr
 
 import java.io.File
-import java.util.Collections
 
 import org.apache.commons.io.FileUtils
-import org.apache.solr.SolrTestCaseJ4.CloudSolrClientBuilder
 import org.apache.solr.client.solrj.impl.CloudSolrClient
 import org.apache.solr.cloud.MiniSolrCloudCluster
 import org.eclipse.jetty.servlet.ServletHolder
@@ -18,6 +16,7 @@ trait SolrCloudTestBuilder extends BeforeAndAfterAll {
   @transient var cluster: MiniSolrCloudCluster = _
   @transient var cloudClient: CloudSolrClient = _
   var zkHost: String = _
+  var baseUrl : String = _
   var testWorkingDir: File = _
 
   override def beforeAll(): Unit = {
@@ -44,6 +43,9 @@ trait SolrCloudTestBuilder extends BeforeAndAfterAll {
       testWorkingDir.toPath, solrXmlContents, extraServlets, null /* extra filters */)
     cloudClient = cluster.getSolrClient
     cloudClient.connect()
+    //val runner = cluster.
+    //var url : URL = runner.getBaseUrl()
+    baseUrl = "http://localhost:"+cluster.getJettySolrRunner(0).getLocalPort+"/solr"
 
     assertTrue(!cloudClient.getZkStateReader.getClusterState.getLiveNodes.isEmpty)
     zkHost = cluster.getZkServer.getZkAddress

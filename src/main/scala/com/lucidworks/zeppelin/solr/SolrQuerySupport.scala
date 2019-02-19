@@ -116,6 +116,10 @@ object SolrQuerySupport {
       callback: StreamingResponseCallback): Option[QueryResponse] = {
     var resp: Option[QueryResponse] = None
 
+    var col = solrQuery.get("collection")
+
+
+
     try {
       if (cursorMark != null) {
         solrQuery.setStart(0)
@@ -188,29 +192,19 @@ object SolrQuerySupport {
     response.getResults.getNumFound
   }
 
-  def getFieldsFromLuke(zkHost: String, collection: String): SolrLukeResponse = {
-    val shardList = SolrSupport.buildShardList(zkHost, collection, true)
+  def getFieldsFromLuke(solrClient : HttpSolrClient, collection: String): SolrLukeResponse = {
     val fieldMap: mutable.Map[String, (String, Long)] = mutable.Map.empty[String, (String, Long)]
-    var numDocs = 0
-    shardList.foreach(shard => {
-      val randomReplica = SolrSupport.randomReplica(shard)
-      val replicaHttpClient = SolrSupport.getCachedHttpSolrClient(randomReplica.replicaUrl, zkHost)
-      val fieldsFromLukeShard = getFieldsFromLukePerShard(zkHost, replicaHttpClient)
-      fieldsFromLukeShard._1.foreach {
-        case(fieldName, fieldInfo) =>
-          val currValue = fieldMap.get(fieldName)
-          if (currValue.isDefined) {
-            fieldMap.put(fieldName, (currValue.get._1, currValue.get._2 + fieldInfo.getDocs))
-          } else {
-            fieldMap.put(fieldName, (fieldInfo.getType, fieldInfo.getDocs))
-          }
-      }
-      numDocs += fieldsFromLukeShard._2
-    })
-    SolrLukeResponse(numDocs, fieldMap.toMap)
+
+    val fieldsFromLukeShard = getFieldsFromLukePerShard(solrClient, collection)
+    fieldsFromLukeShard._1.foreach {
+      case(fieldName, fieldInfo) =>
+          fieldMap.put(fieldName, (fieldInfo.getType, fieldInfo.getDocs))
+    }
+
+    SolrLukeResponse(0, fieldMap.toMap)
   }
 
-  def getFieldsFromLukePerShard(zkHost: String, httpSolrClient: HttpSolrClient): (Map[String, FieldInfo], Int) = {
+  def getFieldsFromLukePerShard(httpSolrClient: HttpSolrClient, collection : String): (Map[String, FieldInfo], Int) = {
     val lukeRequest = new LukeRequest()
     lukeRequest.setNumTerms(0)
     val lukeResponse = lukeRequest.process(httpSolrClient)
@@ -303,7 +297,8 @@ object SolrQuerySupport {
     solrQuery.setRows(0)
     solrQuery.setFacet(true)
 
-    val queryResponse = solrClient.query(collection, solrQuery)
+    val queryResponse = solrClient.query(solrQuery)
+
     if (queryResponse.getStatus != 0) {
       return new InterpreterResult(InterpreterResult.Code.ERROR, InterpreterResult.Type.TEXT, s"Non zero status. Response: ${queryResponse.getResponse.toString}")
     }
@@ -332,7 +327,7 @@ object SolrQuerySupport {
 
   def doStreamingQuery(
       streamingExpression: String,
-      solrClient: CloudSolrClient,
+      solrClient: HttpSolrClient,
       collection: String,
       queryType: String): InterpreterResult = {
     val query = new SolrQuery()
@@ -346,8 +341,7 @@ object SolrQuerySupport {
       logger.info(s"Solr query with SQL statement: ${query}")
     }
 
-    val httpClient = SolrSupport.getCachedHttpSolrClient(SolrSupport.getSolrBaseUrl(solrClient.getZkHost) + collection, solrClient.getZkHost)
-    val streamingIterator = new StreamingExpressionResultIterator(solrClient, httpClient, collection, query)
+    val streamingIterator = new StreamingExpressionResultIterator(solrClient.getBaseURL, collection, query)
 
     val stringBuilder = new StringBuilder
 
