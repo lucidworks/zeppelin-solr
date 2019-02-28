@@ -112,8 +112,18 @@ object SolrSupport {
       .build()
   }
 
+  private def getHttpSolrClient(shardUrl: String): HttpSolrClient = {
+    new HttpSolrClient.Builder()
+      .withBaseSolrUrl(shardUrl)
+      .build()
+  }
+
   def getNewHttpSolrClient(shardUrl: String, zkHost: String): HttpSolrClient = {
     getHttpSolrClient(shardUrl, zkHost)
+  }
+
+  def getNewHttpSolrClient(shardUrl: String): HttpSolrClient = {
+    getHttpSolrClient(shardUrl)
   }
 
   def getCachedHttpSolrClient(shardUrl: String, zkHost: String): HttpSolrClient = {

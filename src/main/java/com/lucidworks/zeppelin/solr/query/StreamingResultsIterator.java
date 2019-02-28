@@ -1,6 +1,7 @@
 package com.lucidworks.zeppelin.solr.query;
 
 import com.lucidworks.zeppelin.solr.SolrQuerySupport;
+import com.lucidworks.zeppelin.solr.SolrSupport;
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
@@ -57,6 +58,8 @@ public class StreamingResultsIterator extends ResultsIterator<SolrDocument> {
     } else {
       solrId = solrServer.toString();
     }
+
+
 
     this.closeAfterIterating = !(solrServer instanceof CloudSolrClient);
     this.solrQuery = solrQuery;

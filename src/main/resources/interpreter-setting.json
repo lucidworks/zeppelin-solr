@@ -4,11 +4,11 @@
     "name": "solr",
     "className": "com.lucidworks.zeppelin.solr.SolrInterpreter",
     "properties": {
-      "solr.zkhost": {
+      "solr.baseUrl": {
         "envName": null,
-        "propertyName": "solr.zkhost",
-        "defaultValue": "localhost:9983",
-        "description": "The ZooKeeper Host connection string for the SolrCloud cluster."
+        "propertyName": "solr.baseUrl",
+        "defaultValue": "http://localhost:8983/solr",
+        "description": "The base Url of the Solr instance Zeppelin is connecting to"
       }
     },
     "editor": {
