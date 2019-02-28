@@ -7,16 +7,7 @@ import org.apache.zeppelin.interpreter.InterpreterResult
 
 
 class SolrInterpreterSettingsTest extends TestSuiteBuilder {
-
-  test("Test interpreter settings") {
-    val properties = new Properties()
-    properties.put(SolrInterpreter.BASE_URL, baseUrl)
-    val solrInterpreter = new SolrInterpreter(properties)
-    solrInterpreter.open()
-    assert(solrInterpreter.getCloudClient != null)
-  }
-
-
+  
 
   test("Unknown command") {
     val properties = new Properties()

@@ -73,6 +73,7 @@ class SolrInterpreterCommandsTest extends CollectionSuiteBuilder {
   }
 
 
+  //Facet command must always have collection sert with use
   test("Test facet command without use command") {
     val properties = new Properties()
     properties.put(SolrInterpreter.BASE_URL, baseUrl)
@@ -80,17 +81,7 @@ class SolrInterpreterCommandsTest extends CollectionSuiteBuilder {
     solrInterpreter.open()
 
     val result = solrInterpreter.interpret(s"facet q=*:*&facet.field=field1_s&collection=${collections(0)}", null)
-    assert(result.code().eq(InterpreterResult.Code.SUCCESS))
-    assert(result.message().size() == 2)
-    val msgs = result.message()
-    val table = msgs.get(0)
-    assert(table.getType.eq(InterpreterResult.Type.TABLE))
-    val tableData = table.getData.split("\n")
-    assert(tableData.size == 21) // 10 docs + header_
-    val header = tableData(0)
-    val headerFields = header.split("\t")
-    assert(headerFields.size == 2)
-    assert(header.equals("field1_s\tCount"))
+    assert(result.code().eq(InterpreterResult.Code.INCOMPLETE))
   }
 
 

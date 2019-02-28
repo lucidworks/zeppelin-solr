@@ -7,27 +7,19 @@
 2. Install this interpreter via command
 
 ```apple js
-./bin/install-interpreter.sh --name solr --artifact com.lucidworks.zeppelin:zeppelin-solr:0.1.3
+./bin/install-interpreter.sh --name solr --artifact com.lucidworks.zeppelin:zeppelin-solr:0.1.4
 ```
 
 After running the above command
 
 1. Restart Zeppelin
-2. Create interpreter setting in 'Interpreter' menu on Zeppelin GUI
-3. Configure the existing 'solr' interpreter to point to zkhost of SolrCloud
+2. On the Interpreters page configure the 'solr' interpreter to point to a Solr base Url.
+3. Create a notebook with the default interpreter set to Solr.
 
-![create-settings](https://raw.githubusercontent.com/lucidworks/zeppelin-solr/master/images/create-interp-setting.png)
-
-### Configuring the Interpreter
-Set the config `solr.zkhost ` in the Solr Interpreter settings. This should point to the zkhost of SolrCloud cluster
-
-### Commands list
-List the collections in the SolrCloud
-
-Usage: `list`
+Commands:
 
 #### use
-Set a collection to use in the notebook. Displays the defined fields that have data with their type
+Set a collection to use in the notebook.
 
 Usage: `use {collection_name}`
 
@@ -42,14 +34,14 @@ Issue a query with facet fields and display the facet counts. No need to explici
 Usage: `facet {facet-params}`
 
 #### stream
-Issue a streaming expression query and display the output as a table
+Issue a streaming expression query and display the output as a table (No prefix required)
 
-Usage: `stream {stream-expr}`
+Usage: `{stream-expr}`
 
 #### sql
-Issue an Solr SQL query and display the results as a table
+Issue an Solr SQL query and display the results as a table (No prefix required)
 
-Usage: `sql {sql-string}`
+Usage: `{sql-string}`
 
 ### Troubleshooting 
 

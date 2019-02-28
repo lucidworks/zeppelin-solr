@@ -39,8 +39,6 @@ public class SolrInterpreter extends Interpreter {
     baseURL = getProperty(BASE_URL);
     logger.info("Connecting to Solr host {}", baseURL);
     //Default to collection1
-    collection = "collection1";
-    solrClient = SolrSupport.getNewHttpSolrClient(baseURL+"/"+collection);
   }
 
   @ZeppelinApi
@@ -59,10 +57,12 @@ public class SolrInterpreter extends Interpreter {
     if ("use".equals(args[0])) {
       if (args.length == 2) {
         collection = args[1];
-        try {
-          solrClient.close();
-        } catch (Exception e) {
-          logger.error("Error closing connection", e);
+        if(solrClient != null) {
+          try {
+            solrClient.close();
+          } catch (Exception e) {
+            logger.error("Error closing connection", e);
+          }
         }
         solrClient = SolrSupport.getNewHttpSolrClient(baseURL+"/"+collection);
         lukeResponse = SolrQuerySupport.getFieldsFromLuke(solrClient, collection);
@@ -73,6 +73,11 @@ public class SolrInterpreter extends Interpreter {
         String msg = "Specify the collection to use for this dashboard. Example: use {collection_name}";
         return new InterpreterResult(InterpreterResult.Code.INCOMPLETE, InterpreterResult.Type.TEXT, msg);
       }
+    }
+
+    if(collection == null) {
+      String msg = "Specify the collection to use for this dashboard. Example: use {collection_name}";
+      return new InterpreterResult(InterpreterResult.Code.INCOMPLETE, InterpreterResult.Type.TEXT, msg);
     }
 
     if ("search".equals(args[0])) {
