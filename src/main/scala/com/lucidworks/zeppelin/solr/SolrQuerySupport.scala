@@ -254,7 +254,7 @@ object SolrQuerySupport {
     if (userFields != null) {
       val userFieldsArray = List(userFields.split(","):_*)
       logger.info(s"User requested fields ${userFieldsArray}")
-      fieldsList = fieldsList.filter(p => userFieldsArray.contains(p))
+      fieldsList = userFieldsArray
       if (userFieldsArray.contains("score")) {
         fieldsList =  "score" :: fieldsList
       }
