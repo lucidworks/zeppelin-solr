@@ -84,7 +84,7 @@ public class SolrInterpreter extends Interpreter {
       if (args.length == 2) {
         SolrQuery searchSolrQuery = SolrQuerySupport.toQuery(args[1]);
         try {
-          return SolrQuerySupport.doSearchQuery(searchSolrQuery, lukeResponse, solrClient, collection);
+          return SolrQuerySupport.doSearchQuery(searchSolrQuery, lukeResponse, solrClient, searchSolrQuery.get("collection", collection));
         } catch (Exception e) {
           logger.error("Exception processing query. Exception: " + e.getMessage());
           e.printStackTrace();
