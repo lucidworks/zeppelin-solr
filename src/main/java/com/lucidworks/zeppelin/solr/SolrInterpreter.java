@@ -22,6 +22,8 @@ public class SolrInterpreter extends Interpreter {
 
   private static Logger logger = LoggerFactory.getLogger(SolrInterpreter.class);
   public static final String BASE_URL = "solr.baseUrl";
+  public static final String JDBC_URL = "jdbc.url";
+  public static final String JDBC_DRIVER = "jdbc.driver";
 
   private String baseURL;
   private HttpSolrClient solrClient;
@@ -118,6 +120,7 @@ public class SolrInterpreter extends Interpreter {
       if (args.length > 1 || args[0].contains("(")) {
         if(args[0].contains("(")) {
           try {
+            st = addJDBCParams(st);
             return SolrQuerySupport.doStreamingQuery("stream "+st, solrClient, collection, "stream");
           } catch (Exception e) {
             return new InterpreterResult(InterpreterResult.Code.INCOMPLETE, InterpreterResult.Type.TEXT, e.getMessage());
@@ -142,6 +145,21 @@ public class SolrInterpreter extends Interpreter {
     }
 
     return new InterpreterResult(InterpreterResult.Code.INCOMPLETE, "Unknown command: " + st + ". List of allowed commands: " + COMMANDS);
+  }
+
+  public String addJDBCParams(String expr) {
+
+    if(expr.contains("jdbc(") && properties.containsKey(JDBC_URL) && !expr.contains("connection=")) {
+      String url = properties.getProperty(JDBC_URL);
+      String driver = properties.getProperty(JDBC_DRIVER);
+      String JDBCParams = "connection=\"" + url + "\", driver=\"" + driver + "\", ";
+      if(!expr.contains("jdbc(sort=")) {
+        JDBCParams = "sort=\"id desc\", " + JDBCParams;
+      }
+      expr = expr.replace("jdbc(", "jdbc(" + JDBCParams);
+    }
+
+    return expr;
   }
 
   public boolean isStreamOrSql(String arg) {
