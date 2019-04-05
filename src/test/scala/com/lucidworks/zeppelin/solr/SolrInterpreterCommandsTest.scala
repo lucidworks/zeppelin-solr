@@ -114,13 +114,13 @@ class SolrInterpreterCommandsTest extends CollectionSuiteBuilder {
     })
   }
 
-  test("Test stream command 2") {
+  test("Test stream command 3") {
     val properties = new Properties()
     properties.put(SolrInterpreter.BASE_URL, baseUrl)
+    properties.put(SolrInterpreter.COLLECTION, collections(0))
     val solrInterpreter = new SolrInterpreter(properties)
     solrInterpreter.open()
 
-    solrInterpreter.interpret(s"use ${collections(0)}", null)
     val result = solrInterpreter.interpret(s"""search(${collections(0)}, q="*:*", fl="field1_s,field3_i", sort="field1_s asc", qt="/export")""", null)
     assert(result.code().eq(InterpreterResult.Code.SUCCESS))
     assert(result.message().size() == 2)
@@ -142,6 +142,33 @@ class SolrInterpreterCommandsTest extends CollectionSuiteBuilder {
     })
   }
 
+  test("Test JDBC Param Injection") {
+    var properties = new Properties()
+    properties.put(SolrInterpreter.BASE_URL, baseUrl)
+    properties.put(SolrInterpreter.JDBC_URL, "jdbc:hive//blah")
+    properties.put(SolrInterpreter.JDBC_DRIVER, "HiveDrive")
+    var solrInterpreter = new SolrInterpreter(properties)
+    //Assert properties are added
+    var expr = solrInterpreter.addJDBCParams("jdbc(sql=\"select a from b\")")
+    assert(expr.equals("jdbc(sort=\"id desc\", connection=\"jdbc:hive//blah\", driver=\"HiveDrive\", sql=\"select a from b\")"))
+
+    //Assert properties are not added
+    expr = solrInterpreter.addJDBCParams("jdbc(connection=\"blah\", sql=\"select a from b\")")
+    assert(expr.equals("jdbc(connection=\"blah\", sql=\"select a from b\")"))
+
+
+    //Assert the sort is not touched
+    expr = solrInterpreter.addJDBCParams("jdbc(sort=\"blah asc\", sql=\"select a from b\")")
+    assert(expr.equals("jdbc(connection=\"jdbc:hive//blah\", driver=\"HiveDrive\", sort=\"blah asc\", sql=\"select a from b\")"))
+
+
+    properties = new Properties()
+    properties.put(SolrInterpreter.BASE_URL, baseUrl)
+    solrInterpreter = new SolrInterpreter(properties)
+    //Assert properties are not added as there are no properties.
+    expr = solrInterpreter.addJDBCParams("jdbc(sql=\"select a from b\")")
+    assert(expr.equals("jdbc(sql=\"select a from b\")"))
+  }
 
 
   test("Test SQL command") {

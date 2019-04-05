@@ -22,6 +22,9 @@ public class SolrInterpreter extends Interpreter {
 
   private static Logger logger = LoggerFactory.getLogger(SolrInterpreter.class);
   public static final String BASE_URL = "solr.baseUrl";
+  public static final String COLLECTION = "solr.collection";
+  public static final String JDBC_URL = "jdbc.url";
+  public static final String JDBC_DRIVER = "jdbc.driver";
 
   private String baseURL;
   private HttpSolrClient solrClient;
@@ -38,7 +41,14 @@ public class SolrInterpreter extends Interpreter {
   public void open() {
     baseURL = getProperty(BASE_URL);
     logger.info("Connecting to Solr host {}", baseURL);
-    //Default to collection1
+    collection = getProperty(COLLECTION);
+    if(collection != null) {
+      //Set the base collection but don't do the Luke response.
+      //The get the luke response uses must specify use.
+      //Streaming Expressions and SQL don't require a luke response. They just require a collection and client
+      //So "use" is not required for streaming expressions or sql if default collection is set.
+      solrClient = SolrSupport.getNewHttpSolrClient(baseURL+"/"+collection);
+    }
   }
 
   @ZeppelinApi
@@ -81,6 +91,10 @@ public class SolrInterpreter extends Interpreter {
     }
 
     if ("search".equals(args[0])) {
+      if(lukeResponse == null) {
+        returnCollectionNull();
+      }
+
       if (args.length == 2) {
         SolrQuery searchSolrQuery = SolrQuerySupport.toQuery(args[1]);
         try {
@@ -97,6 +111,9 @@ public class SolrInterpreter extends Interpreter {
     }
 
     if ("facet".equals(args[0])) {
+      if(lukeResponse == null) {
+        return returnCollectionNull();
+      }
       if (args.length == 2) {
         SolrQuery searchSolrQuery = SolrQuerySupport.toQuery(args[1]);
         if (collection == null) {
@@ -118,6 +135,7 @@ public class SolrInterpreter extends Interpreter {
       if (args.length > 1 || args[0].contains("(")) {
         if(args[0].contains("(")) {
           try {
+            st = addJDBCParams(st);
             return SolrQuerySupport.doStreamingQuery("stream "+st, solrClient, collection, "stream");
           } catch (Exception e) {
             return new InterpreterResult(InterpreterResult.Code.INCOMPLETE, InterpreterResult.Type.TEXT, e.getMessage());
@@ -142,6 +160,21 @@ public class SolrInterpreter extends Interpreter {
     }
 
     return new InterpreterResult(InterpreterResult.Code.INCOMPLETE, "Unknown command: " + st + ". List of allowed commands: " + COMMANDS);
+  }
+
+  public String addJDBCParams(String expr) {
+
+    if(expr.contains("jdbc(") && properties.containsKey(JDBC_URL) && !expr.contains("connection=")) {
+      String url = properties.getProperty(JDBC_URL);
+      String driver = properties.getProperty(JDBC_DRIVER);
+      String JDBCParams = "connection=\"" + url + "\", driver=\"" + driver + "\", ";
+      if(!expr.contains("jdbc(sort=")) {
+        JDBCParams = "sort=\"id desc\", " + JDBCParams;
+      }
+      expr = expr.replace("jdbc(", "jdbc(" + JDBCParams);
+    }
+
+    return expr;
   }
 
   public boolean isStreamOrSql(String arg) {
