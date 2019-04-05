@@ -10,6 +10,12 @@
         "defaultValue": "http://localhost:8983/solr",
         "description": "The base Url of the Solr instance Zeppelin is connecting to"
       },
+      "solr.collection": {
+        "envName": null,
+        "propertyName": "solr.collection",
+        "defaultValue": "collection1",
+        "description": "The default collection to send requests to."
+      },
       "jdbc.url": {
         "envName": null,
         "propertyName": "jdbc.url",

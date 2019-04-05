@@ -114,13 +114,13 @@ class SolrInterpreterCommandsTest extends CollectionSuiteBuilder {
     })
   }
 
-  test("Test stream command 2") {
+  test("Test stream command 3") {
     val properties = new Properties()
     properties.put(SolrInterpreter.BASE_URL, baseUrl)
+    properties.put(SolrInterpreter.COLLECTION, collections(0))
     val solrInterpreter = new SolrInterpreter(properties)
     solrInterpreter.open()
 
-    solrInterpreter.interpret(s"use ${collections(0)}", null)
     val result = solrInterpreter.interpret(s"""search(${collections(0)}, q="*:*", fl="field1_s,field3_i", sort="field1_s asc", qt="/export")""", null)
     assert(result.code().eq(InterpreterResult.Code.SUCCESS))
     assert(result.message().size() == 2)
