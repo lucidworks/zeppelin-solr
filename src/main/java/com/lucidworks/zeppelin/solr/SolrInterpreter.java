@@ -92,7 +92,7 @@ public class SolrInterpreter extends Interpreter {
 
     if ("search".equals(args[0])) {
       if(lukeResponse == null) {
-        returnCollectionNull();
+        return returnCollectionNull();
       }
 
       if (args.length == 2) {
