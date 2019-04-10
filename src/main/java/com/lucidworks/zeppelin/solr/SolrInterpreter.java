@@ -125,7 +125,7 @@ public class SolrInterpreter extends Interpreter {
           return new InterpreterResult(InterpreterResult.Code.INCOMPLETE, InterpreterResult.Type.TEXT, e.getMessage());
         }
       } else {
-        String msg = "Specify the query params to facet with. Example: search q=text&facet=true&facet.field=genre&collection=solr_collection";
+        String msg = "Specify the query params to facet with. Example: facet q=text&facet.field=genre&collection=solr_collection";
         return new InterpreterResult(InterpreterResult.Code.INCOMPLETE, InterpreterResult.Type.TEXT, msg);
       }
     }
