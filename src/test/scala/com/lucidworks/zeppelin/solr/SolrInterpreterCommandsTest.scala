@@ -63,6 +63,30 @@ class SolrInterpreterCommandsTest extends CollectionSuiteBuilder {
 
   }  
 
+  test("Test search command preserves fl order") {
+    val properties = new Properties()
+    properties.put(SolrInterpreter.BASE_URL, baseUrl)
+    val solrInterpreter = new SolrInterpreter(properties)
+    solrInterpreter.open()
+
+    solrInterpreter.interpret(s"use ${collections(0)}", null)
+    val result = solrInterpreter.interpret(s"search q=*:*&fl=id,field3_i,field2_s,field5_ii", null)
+    assert(result.code().eq(InterpreterResult.Code.SUCCESS))
+    assert(result.message().size() == 2)
+
+    val msgs = result.message()
+    val table = msgs.get(0)
+    assert(table.getType.eq(InterpreterResult.Type.TABLE))
+    val tableData = table.getData.split("\n")
+    assert(tableData.size == 11) // 10 docs + header_
+    val header = tableData(0)
+    val headerFields = header.split("\t")
+    assert(headerFields.size == 4)
+    assert(header.equals("id\tfield3_i\tfield2_s\tfield5_ii"))
+
+  }
+
+
 
 
   test("Test facet command with use command") {
