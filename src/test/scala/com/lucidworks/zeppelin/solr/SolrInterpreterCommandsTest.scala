@@ -48,6 +48,20 @@ class SolrInterpreterCommandsTest extends CollectionSuiteBuilder {
       } ))
     })
   }
+  
+  // Make sure the collection parameter is passed through to Solr
+  test("Test search command specifing non existent collection fails") {
+    val properties = new Properties()
+    properties.put(SolrInterpreter.BASE_URL, baseUrl)
+    val solrInterpreter = new SolrInterpreter(properties)
+    solrInterpreter.open()
+
+    solrInterpreter.interpret(s"use ${collections(0)}", null)
+    val result = solrInterpreter.interpret(s"search q=*:*&collection=fake_collection", null)
+    assert(result.code().eq(InterpreterResult.Code.ERROR))
+    assert(result.message().size() == 1)
+
+  }  
 
 
 
