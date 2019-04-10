@@ -7,13 +7,17 @@
 2. Install this interpreter via command
 
 ```apple js
-./bin/install-interpreter.sh --name solr --artifact com.lucidworks.zeppelin:zeppelin-solr:0.1.4
+./bin/install-interpreter.sh --name solr --artifact com.lucidworks.zeppelin:zeppelin-solr:0.1.5
 ```
 
 After running the above command
 
 1. Restart Zeppelin
-2. On the Interpreters page configure the 'solr' interpreter to point to a Solr base Url.
+
+2. On the Interpreters page configure the 'solr' interpreter to point to a Solr base Url and default collection. Default
+JDBC parameters can also be set for use the with the "jdbc" Streaming Expression. The JDBC parameters will be
+automatically added to out-going jdbc calls if the jdbc Streaming Expression does not specify the connection parameters.
+
 3. Create a notebook with the default interpreter set to Solr.
 
 Commands:
