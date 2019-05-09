@@ -47,10 +47,11 @@ Issue an Solr SQL query and display the results as a table (No prefix required)
 
 Usage: `{sql-string}`
 
-### Troubleshooting 
+### Troubleshooting
 
 * Check Solr interpreter log for any Solr errors (logs/zeppelin-interpreter-solr-\*) (Fixed in 0.1.1)
 * Zeppelin 0.8.0 does not work well if interpreter does not have the same name as the interpreter installed. Not sure what is causing this. I would recommend using `solr` for interpreter name
+* If you have already installed a previous version of this interpreter, you will need to rename the `./interpreter/solr` directory to allow the installer to run.
 
 ### Example
 
@@ -61,8 +62,7 @@ Usage: `{sql-string}`
 
 1. clone the project to your local box
 2. Make sure scala plugin is enabled for IntelliJ
-3. In IntelliJ, click on 'File -> New -> Project from Existing Sources -> (Navigate to zeppelin-solr dir) -> **select pom.xml** -> click Open' 
+3. In IntelliJ, click on 'File -> New -> Project from Existing Sources -> (Navigate to zeppelin-solr dir) -> **select pom.xml** -> click Open'
 4. Go through the steps for creating the project
 5. Overwrite `.idea` project if the IDE prompts
 6. Once deps are resolved, click on `Build Project` to verify
-
