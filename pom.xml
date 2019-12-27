@@ -9,13 +9,6 @@
     <name>Zeppelin: Apache Solr interpreter</name>
     <description>Zeppelin Solr support</description>
     <url>https://github.com/LucidWorks/zeppelin-solr</url>
-    <repositories>
-        <repository>
-            <id>maven-restlet</id>
-            <name>Restlet repository</name>
-            <url>http://repo.spring.io</url>
-        </repository>
-    </repositories>
     <licenses>
         <license>
             <name>Apache License, Version 2.0</name>
