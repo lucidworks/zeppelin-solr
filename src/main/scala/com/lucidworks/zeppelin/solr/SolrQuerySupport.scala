@@ -325,7 +325,27 @@ object SolrQuerySupport {
     result
   }
 
-  def doStreamingQuery(
+  def doStreamingIterator(
+                        streamingExpression: String,
+                        solrClient: HttpSolrClient,
+                        collection: String,
+                        queryType: String): StreamingExpressionResultIterator = {
+    val query = new SolrQuery()
+    if (queryType.equals("stream")) {
+      query.set("expr", streamingExpression.substring(queryType.length + 1).replaceAll("\\s+", " "))
+      query.set("qt", "/stream")
+      logger.info(s"Solr query with streaming expression: ${query}")
+    } else if (queryType.equals("sql")) {
+      query.set("sql", streamingExpression.substring(queryType.length + 1).replaceAll("\\s+", " "))
+      query.set("qt", "/sql")
+      logger.info(s"Solr query with SQL statement: ${query}")
+    }
+
+    return new StreamingExpressionResultIterator(solrClient.getBaseURL, collection, query)
+  }
+
+
+    def doStreamingQuery(
       streamingExpression: String,
       solrClient: HttpSolrClient,
       collection: String,

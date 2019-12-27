@@ -1,8 +1,11 @@
 package com.lucidworks.zeppelin.solr;
 
+import com.lucidworks.zeppelin.solr.query.StreamingExpressionResultIterator;
+import com.lucidworks.zeppelin.solr.query.StreamingResultsIterator;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.impl.HttpSolrClient;
+import org.apache.solr.client.solrj.io.Tuple;
 import org.apache.zeppelin.annotation.ZeppelinApi;
 import org.apache.zeppelin.interpreter.Interpreter;
 import org.apache.zeppelin.interpreter.InterpreterContext;
@@ -10,9 +13,7 @@ import org.apache.zeppelin.interpreter.InterpreterResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 
 
 /**
@@ -136,7 +137,8 @@ public class SolrInterpreter extends Interpreter {
         if(args[0].contains("(")) {
           try {
             st = addJDBCParams(st);
-            return SolrQuerySupport.doStreamingQuery("stream "+st, solrClient, collection, "stream");
+            StreamingExpressionResultIterator streamingResultsIterator = SolrQuerySupport.doStreamingIterator("stream "+st, solrClient, collection, "stream");
+            return getStreamingResult(streamingResultsIterator);
           } catch (Exception e) {
             return new InterpreterResult(InterpreterResult.Code.INCOMPLETE, InterpreterResult.Type.TEXT, e.getMessage());
           }
@@ -148,7 +150,9 @@ public class SolrInterpreter extends Interpreter {
           }
         } else {
           try {
-            return SolrQuerySupport.doStreamingQuery(st, solrClient, collection, args[0]);
+            StreamingExpressionResultIterator streamingResultsIterator = SolrQuerySupport.doStreamingIterator(st, solrClient, collection, args[0]);
+            return getStreamingResult(streamingResultsIterator);
+            //return SolrQuerySupport.doStreamingQuery(st, solrClient, collection, args[0]);
           } catch (Exception e) {
             return new InterpreterResult(InterpreterResult.Code.INCOMPLETE, InterpreterResult.Type.TEXT, e.getMessage());
           }
@@ -160,6 +164,56 @@ public class SolrInterpreter extends Interpreter {
     }
 
     return new InterpreterResult(InterpreterResult.Code.INCOMPLETE, "Unknown command: " + st + ". List of allowed commands: " + COMMANDS);
+  }
+
+  private InterpreterResult getStreamingResult(StreamingExpressionResultIterator streamingExpressionResultIterator) {
+
+    InterpreterResult interpreterResult = new InterpreterResult(InterpreterResult.Code.SUCCESS);
+
+    List<Map> tuples = new ArrayList();
+    Set<String> fields = new HashSet();
+    while(streamingExpressionResultIterator.hasNext()) {
+      Map tuple = streamingExpressionResultIterator.nextTuple();
+      tuples.add(tuple);
+      for(Object field : tuple.keySet()) {
+        fields.add(field.toString());
+      }
+    }
+
+    StringBuilder builder = new StringBuilder();
+    for(String field : fields) {
+      if(builder.length() > 0) {
+        builder.append("\t");
+      }
+      builder.append(field);
+    }
+    builder.append("\n");
+
+    for(Map tuple : tuples) {
+      boolean tab = false;
+      for(String field : fields) {
+        if(tab) {
+          builder.append("\t");
+        } else {
+          tab = true;
+        }
+
+        Object value = tuple.get(field);
+        if(value != null) {
+          builder.append(value.toString());
+        }
+      }
+      builder.append("\n");
+    }
+
+    if (streamingExpressionResultIterator.getNumDocs() == 0) {
+      interpreterResult.add(InterpreterResult.Type.HTML, "<font color=red>Zero results for the query.</font>");
+      return interpreterResult;
+    } else {
+      interpreterResult.add(InterpreterResult.Type.TABLE, builder.toString());
+      interpreterResult.add(InterpreterResult.Type.HTML, "<font color=blue>Number of results:"+streamingExpressionResultIterator.getNumDocs()+".</font>");
+      return interpreterResult;
+    }
   }
 
   public String addJDBCParams(String expr) {
