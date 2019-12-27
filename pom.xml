@@ -36,7 +36,7 @@
         </snapshotRepository>
     </distributionManagement>
     <properties>
-        <solr.version>7.5.0</solr.version>
+        <solr.version>7.7.2</solr.version>
         <scala.version>2.11.12</scala.version>
         <scala.binary.version>2.11</scala.binary.version>
         <guava.version>15.0</guava.version>
