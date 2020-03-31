@@ -40,7 +40,7 @@
         <scala.version>2.11.12</scala.version>
         <scala.binary.version>2.11</scala.binary.version>
         <guava.version>15.0</guava.version>
-        <zeppelin.version>0.8.0</zeppelin.version>
+        <zeppelin.version>0.9.0-preview1</zeppelin.version>
         <plugin.compiler.version>3.1</plugin.compiler.version>
     </properties>
 
@@ -155,7 +155,7 @@
             <plugin>
                 <groupId>net.alchim31.maven</groupId>
                 <artifactId>scala-maven-plugin</artifactId>
-                <version>3.2.2</version>
+                <version>4.3.1</version>
                 <executions>
                     <execution>
                         <id>compile</id>
