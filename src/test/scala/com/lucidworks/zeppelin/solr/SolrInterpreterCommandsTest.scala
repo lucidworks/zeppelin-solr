@@ -38,17 +38,17 @@ class SolrInterpreterCommandsTest extends CollectionSuiteBuilder {
     assert(tableData.size == 11) // 10 docs + header_
     val header = tableData(0)
     val headerFields = header.split("\t")
-    assert(headerFields.size == 7)
+    assert(headerFields.size == 8)
 
     tableData.foreach(td => {
       val contents = td.split("\t")
-      assert(contents.size == 7)
+      assert(contents.size == 8)
       assert(contents.forall(f => {
         f != null && f.length > 0
       } ))
     })
   }
-  
+
   // Make sure the collection parameter is passed through to Solr
   test("Test search command specifing non existent collection fails") {
     val properties = new Properties()
@@ -61,7 +61,7 @@ class SolrInterpreterCommandsTest extends CollectionSuiteBuilder {
     assert(result.code().eq(InterpreterResult.Code.ERROR))
     assert(result.message().size() == 1)
 
-  }  
+  }
 
   test("Test search command preserves fl order") {
     val properties = new Properties()
