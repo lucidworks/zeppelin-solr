@@ -69,13 +69,16 @@ trait TestSuiteBuilder extends ZeppelinSolrFunSuite with SolrCloudTestBuilder {}
 
 trait CollectionSuiteBuilder extends TestSuiteBuilder {
   val collections = Array("col1", "col2")
+  val emptyCollection = "emptyCol"
 
   override def beforeAll(): Unit = {
     super.beforeAll()
     collections.foreach(f => SolrCloudUtil.buildCollection(zkHost, f, 20, 1, cloudClient))
+    SolrCloudUtil.buildCollection(zkHost, emptyCollection, 0, 1, cloudClient)
   }
 
   override def afterAll(): Unit = {
+    SolrCloudUtil.deleteCollection(emptyCollection, cluster)
     collections.foreach(f => SolrCloudUtil.deleteCollection(f, cluster))
     super.afterAll()
   }
