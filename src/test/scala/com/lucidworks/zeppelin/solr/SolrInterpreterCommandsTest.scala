@@ -6,7 +6,62 @@ import org.apache.zeppelin.interpreter.InterpreterResult
 
 class SolrInterpreterCommandsTest extends CollectionSuiteBuilder {
 
+  test("Test 'help' command") {
+    val properties = new Properties()
+    properties.put(SolrInterpreter.BASE_URL, baseUrl)
+    val solrInterpreter = new SolrInterpreter(properties)
+    solrInterpreter.open()
 
+    {
+      val result = solrInterpreter.interpret("help", null)
+      assert(result.code().eq(InterpreterResult.Code.SUCCESS))
+      assert(result.message().size() == 1)
+      assert(result.message().get(0).getData.equals("List of supported commands: [help, use, search, facet, stream, sql]. " +
+        "Run `help <command>` for information on a specific command"))
+    }
+
+    {
+      val result = solrInterpreter.interpret("help use", null)
+      assert(result.code().eq(InterpreterResult.Code.SUCCESS))
+      assert(result.message().size() == 1)
+      assert(result.message().get(0).getData.equals("Set a default collection for us in other commands.\\nUsage: `use <collection_name>`"))
+    }
+
+    {
+      val result = solrInterpreter.interpret("help search", null)
+      assert(result.code().eq(InterpreterResult.Code.SUCCESS))
+      assert(result.message().size() == 1)
+      assert(result.message().get(0).getData.equals("Issue a search request and display the results.\\nUsage: `search <Solr query params>`"))
+    }
+
+    {
+      val result = solrInterpreter.interpret("help facet", null)
+      assert(result.code().eq(InterpreterResult.Code.SUCCESS))
+      assert(result.message().size() == 1)
+      assert(result.message().get(0).getData.equals("Issue a facet request and display the computed counts.\\n Usage: `facet <Solr facet params>`"))
+    }
+
+    {
+      val result = solrInterpreter.interpret("help stream", null)
+      assert(result.code().eq(InterpreterResult.Code.SUCCESS))
+      assert(result.message().size() == 1)
+      assert(result.message().get(0).getData.equals("Issue a streaming expression request and display the results.\\nUsage: `stream <streaming-expression>`"))
+    }
+
+    {
+      val result = solrInterpreter.interpret("help sql", null)
+      assert(result.code().eq(InterpreterResult.Code.SUCCESS))
+      assert(result.message().size() == 1)
+      assert(result.message().get(0).getData.equals("Issue a SolrSQL query and display the results\\nUsage: `sql <sql-expression>`"))
+    }
+
+    {
+      val result = solrInterpreter.interpret("help nonexistentCommand", null)
+      assert(result.code().eq(InterpreterResult.Code.ERROR))
+      assert(result.message().size() == 1)
+      assert(result.message().get(0).getData.equals("Command [nonexistentCommand] not supported.  Supported commands are [help, use, search, facet, stream, sql]."))
+    }
+  }
 
   test("Test use command") {
     val properties = new Properties()
@@ -17,7 +72,6 @@ class SolrInterpreterCommandsTest extends CollectionSuiteBuilder {
     val result = solrInterpreter.interpret(s"use ${collections(0)}", null)
     assert(result.code().eq(InterpreterResult.Code.SUCCESS))
   }
-
 
 
   test("Test search command") {
