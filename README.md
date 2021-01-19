@@ -22,6 +22,11 @@ automatically added to out-going jdbc calls if the jdbc Streaming Expression doe
 
 Commands:
 
+#### help
+Display help text in the note window. Command-specific help is provided if a valid command is provided as an argument.
+
+Usage: `help [{specific-command}]`
+
 #### use
 Set a collection to use in the notebook.
 
