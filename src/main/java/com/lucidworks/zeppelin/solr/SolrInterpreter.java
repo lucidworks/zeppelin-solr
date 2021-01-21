@@ -36,7 +36,8 @@ public class SolrInterpreter extends Interpreter {
   private SolrLukeResponse lukeResponse;
 
   private static final List<String> COMMANDS = Arrays.asList(
-      "use", "search", "facet", "stream", "sql");
+      "help", "use", "search", "facet", "stream", "sql");
+  private static final String COMMAND_LIST_STRING = "[" + String.join(", ", COMMANDS) + "]";
 
   @ZeppelinApi
   public void open() {
@@ -64,8 +65,9 @@ public class SolrInterpreter extends Interpreter {
     }
     String[] args = st.split(" ");
 
-
-    if ("use".equals(args[0])) {
+    if ("help".equals(args[0])) {
+      return determineHelpResponse(args);
+    } else if ("use".equals(args[0])) {
       if (args.length == 2) {
         collection = args[1];
         if(solrClient != null) {
@@ -253,5 +255,38 @@ public class SolrInterpreter extends Interpreter {
 
   public InterpreterResult returnCollectionNull() {
       return new InterpreterResult(InterpreterResult.Code.INCOMPLETE, InterpreterResult.Type.TEXT, "Set collection to use with 'use {collection}' command or set collection in query params for search and facet commands");
+  }
+
+  // Only called when args[0].equals("help")
+  private InterpreterResult determineHelpResponse(String[] args) {
+    String msg = null;
+    if (args.length == 1) {
+      msg = "List of supported commands: " + COMMAND_LIST_STRING + ". Run `help <command>` for information on a specific command";
+    } else if (args.length == 2) {
+      switch (args[1]){
+        case "use":
+          msg = "Set a default collection for use in other commands.\nUsage: `use <collection_name>`";
+          break;
+        case "search":
+          msg = "Issue a search request and display the results.\nUsage: `search <Solr query params>`";
+          break;
+        case "facet":
+          msg = "Issue a facet request and display the computed counts.\n Usage: `facet <Solr facet params>`";
+          break;
+        case "stream":
+          msg = "Issue a streaming expression request and display the results.\nUsage: `stream <streaming-expression>`";
+          break;
+        case "sql":
+          msg = "Issue a SQL query and display the results.  NOTE: Solr only supports a subset of traditional SQL " +
+                  "syntax.  See the Solr Reference Guide for details. " +
+                  "https://lucene.apache.org/solr/guide/parallel-sql-interface.html#solr-sql-syntax" +
+                  "\nUsage: `sql <sql-expression>`";
+          break;
+        default:
+          msg = "Command [" + args[1] + "] not supported.  Supported commands are " + COMMAND_LIST_STRING + ".";
+          return new InterpreterResult(InterpreterResult.Code.ERROR, InterpreterResult.Type.TEXT, msg);
+      }
+    }
+    return new InterpreterResult(InterpreterResult.Code.SUCCESS, InterpreterResult.Type.TEXT, msg);
   }
 }
