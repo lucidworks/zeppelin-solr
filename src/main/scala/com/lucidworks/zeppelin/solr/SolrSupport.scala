@@ -3,7 +3,7 @@ package com.lucidworks.zeppelin.solr
 import java.net.{ConnectException, InetAddress, SocketException, URL}
 
 import com.google.common.cache._
-import org.apache.commons.httpclient.NoHttpResponseException
+import org.apache.http.NoHttpResponseException
 import org.apache.solr.client.solrj.SolrClient
 import org.apache.solr.client.solrj.impl._
 import org.apache.solr.client.solrj.request.UpdateRequest

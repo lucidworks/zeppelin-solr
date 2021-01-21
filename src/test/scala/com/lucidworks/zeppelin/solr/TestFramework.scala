@@ -2,12 +2,12 @@ package com.lucidworks.zeppelin.solr
 
 import java.io.File
 
+import javax.servlet.http.HttpServlet
 import org.apache.commons.io.FileUtils
 import org.apache.solr.client.solrj.impl.CloudSolrClient
 import org.apache.solr.cloud.MiniSolrCloudCluster
 import org.eclipse.jetty.servlet.ServletHolder
 import org.junit.Assert._
-import org.restlet.ext.servlet.ServerServlet
 import org.scalatest.{BeforeAndAfterAll, Suite}
 
 trait SolrCloudTestBuilder extends BeforeAndAfterAll {
@@ -35,7 +35,7 @@ trait SolrCloudTestBuilder extends BeforeAndAfterAll {
     // need the schema stuff
     val extraServlets: java.util.SortedMap[ServletHolder, String] = new java.util.TreeMap[ServletHolder, String]()
 
-    val solrSchemaRestApi: ServletHolder = new ServletHolder("SolrSchemaRestApi", classOf[ServerServlet])
+    val solrSchemaRestApi: ServletHolder = new ServletHolder("SolrSchemaRestApi", classOf[HttpServlet])
     solrSchemaRestApi.setInitParameter("org.restlet.application", "org.apache.solr.rest.SolrSchemaRestApi")
     extraServlets.put(solrSchemaRestApi, "/schema/*")
 
