@@ -24,7 +24,7 @@ class SolrInterpreterCommandsTest extends CollectionSuiteBuilder {
       val result = solrInterpreter.interpret("help use", null)
       assert(result.code().eq(InterpreterResult.Code.SUCCESS))
       assert(result.message().size() == 1)
-      assert(result.message().get(0).getData.equals("Set a default collection for us in other commands.\\nUsage: `use <collection_name>`"))
+      assert(result.message().get(0).getData.equals("Set a default collection for use in other commands.\\nUsage: `use <collection_name>`"))
     }
 
     {
@@ -52,7 +52,10 @@ class SolrInterpreterCommandsTest extends CollectionSuiteBuilder {
       val result = solrInterpreter.interpret("help sql", null)
       assert(result.code().eq(InterpreterResult.Code.SUCCESS))
       assert(result.message().size() == 1)
-      assert(result.message().get(0).getData.equals("Issue a SolrSQL query and display the results\\nUsage: `sql <sql-expression>`"))
+      assert(result.message().get(0).getData.equals("Issue a SQL query and display the results.  NOTE: Solr only " +
+        "supports a subset of traditional SQL syntax.  See the Solr Reference Guide for details. " +
+        "https://lucene.apache.org/solr/guide/parallel-sql-interface.html#solr-sql-syntax" +
+        "\\nUsage: `sql <sql-expression>`"))
     }
 
     {
