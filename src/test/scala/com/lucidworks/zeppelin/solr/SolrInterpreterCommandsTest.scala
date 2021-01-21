@@ -92,15 +92,55 @@ class SolrInterpreterCommandsTest extends CollectionSuiteBuilder {
     assert(tableData.size == 11) // 10 docs + header_
     val header = tableData(0)
     val headerFields = header.split("\t")
-    assert(headerFields.size == 7)
+    assert(headerFields.size == 8)
 
     tableData.foreach(td => {
       val contents = td.split("\t")
-      assert(contents.size == 7)
+      assert(contents.size == 8)
       assert(contents.forall(f => {
         f != null && f.length > 0
       } ))
     })
+  }
+
+  test("Zero-result queries should be repeatable") {
+    val properties = new Properties()
+    properties.put(SolrInterpreter.BASE_URL, baseUrl)
+    val solrInterpreter = new SolrInterpreter(properties)
+    solrInterpreter.open()
+
+    solrInterpreter.interpret(s"use ${collections(0)}", null)
+    val firstNoResultsResponse = solrInterpreter.interpret(s"search q=field1_s:nonexistent_value", null)
+    assert(firstNoResultsResponse.code().eq(InterpreterResult.Code.SUCCESS))
+    assert(firstNoResultsResponse.message().size() == 1)
+    assert(firstNoResultsResponse.message().get(0).getData.equals("<font color=red>Zero results for the query.</font>"))
+
+    val secondNoResultsResponse = solrInterpreter.interpret(s"search q=field1_s:nonexistent_value", null)
+    assert(secondNoResultsResponse.code().eq(InterpreterResult.Code.SUCCESS))
+    assert(secondNoResultsResponse.message().size() == 1)
+    assert(secondNoResultsResponse.message().get(0).getData.equals("<font color=red>Zero results for the query.</font>"))
+
+  }
+
+
+  test("Search commands on empty collections should be repeatable") {
+    val properties = new Properties()
+    properties.put(SolrInterpreter.BASE_URL, baseUrl)
+    val solrInterpreter = new SolrInterpreter(properties)
+    solrInterpreter.open()
+
+    solrInterpreter.interpret(s"use ${emptyCollection}", null)
+    val firstEmptyCollectionResponse = solrInterpreter.interpret(s"search q=*:*", null)
+    assert(firstEmptyCollectionResponse.code().eq(InterpreterResult.Code.SUCCESS))
+    assert(firstEmptyCollectionResponse.message().size() == 1)
+    assert(firstEmptyCollectionResponse.message().get(0).getData.equals("<font color=red>Zero results for the query.</font>"))
+
+
+    val secondEmptyCollectionResponse = solrInterpreter.interpret(s"search q=*:*", null)
+    assert(secondEmptyCollectionResponse.code().eq(InterpreterResult.Code.SUCCESS))
+    assert(secondEmptyCollectionResponse.message().size() == 1)
+    assert(secondEmptyCollectionResponse.message().get(0).getData.equals("<font color=red>Zero results for the query.</font>"))
+
   }
   
   // Make sure the collection parameter is passed through to Solr

@@ -170,11 +170,11 @@ object SolrCloudUtil {
   def buildCollection(zkHost: String,
                       collection: String,
                       cloudClient: CloudSolrClient): Unit = {
-    val inputDocs: Array[String] = Array(
+    val inputDocs: Option[Array[String]] = Option(Array(
       collection + "-1,foo,bar,1,[a;b],[1;2]",
       collection + "-2,foo,baz,2,[c;d],[3;4]",
       collection + "-3,bar,baz,3,[e;f],[5;6]"
-    )
+    ))
     buildCollection(zkHost, collection, inputDocs, 2, cloudClient)
   }
 
@@ -183,16 +183,22 @@ object SolrCloudUtil {
                       numDocs: Int,
                       numShards: Int,
                       cloudClient: CloudSolrClient): Unit = {
-    val inputDocs: Array[String] = new Array[String](numDocs)
-    for (n: Int <- 0 to numDocs-1) {
-      inputDocs.update(n, collection + "-" + n + ",foo" + n + ",bar" + n + "," + n + ",[a;b],[1;2]")
-    }
+    val inputDocs: Option[Array[String]] =
+      if (numDocs > 0) {
+        val inputDocsTmp = new Array[String](numDocs)
+        for (n: Int <- 0 to numDocs-1) {
+          inputDocsTmp.update(n, collection + "-" + n + ",foo" + n + ",bar" + n + "," + n + ",[a;b],[1;2]")
+        }
+        Option(inputDocsTmp)
+      } else { Option.empty}
+
+
     buildCollection(zkHost, collection, inputDocs, numShards, cloudClient)
   }
 
   def buildCollection(zkHost: String,
                       collection: String,
-                      inputDocs: Array[String],
+                      inputDocs: Option[Array[String]],
                       numShards: Int,
                       cloudClient: CloudSolrClient): Unit = {
     val confName = "testConfig"
@@ -201,8 +207,8 @@ object SolrCloudUtil {
     createCollection(collection, numShards, replicationFactor, numShards, confName, confDir, cloudClient)
 
     // index some docs in to the new collection
-    if (inputDocs != null) {
-      val numDocsIndexed: Int = indexDocs(zkHost, collection, inputDocs, cloudClient)
+    if (inputDocs.isDefined) {
+      val numDocsIndexed: Int = indexDocs(zkHost, collection, inputDocs.get, cloudClient)
       Thread.sleep(1000L)
       // verify docs got indexed .. relies on soft auto-commits firing frequently
       val solrParams = new ModifiableSolrParams()

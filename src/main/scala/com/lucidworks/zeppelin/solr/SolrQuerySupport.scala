@@ -141,7 +141,7 @@ object SolrQuerySupport {
       }
     } catch {
       case e: Exception =>
-        logger.error("Query [" + solrQuery + "] failed due to: " + e)
+        logger.error("Query [" + solrQuery + "] failed due to: ", e)
 
         //re-try once in the event of a communications error with the server
         if (SolrSupport.shouldRetry(e)) {

@@ -18,8 +18,8 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.noggit.CharArr;
 import org.noggit.JSONWriter;
-import org.restlet.ext.servlet.ServerServlet;
 
+import javax.servlet.http.HttpServlet;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -80,7 +80,7 @@ public class TestSolrCloudClusterSupport {
 
     // need the schema stuff
     final SortedMap<ServletHolder,String> extraServlets = new TreeMap<ServletHolder,String>();
-    final ServletHolder solrSchemaRestApi = new ServletHolder("SolrSchemaRestApi", ServerServlet.class);
+    final ServletHolder solrSchemaRestApi = new ServletHolder("SolrSchemaRestApi", HttpServlet.class);
     solrSchemaRestApi.setInitParameter("org.restlet.application", "org.apache.solr.rest.SolrSchemaRestApi");
     extraServlets.put(solrSchemaRestApi, "/schema/*");
 
