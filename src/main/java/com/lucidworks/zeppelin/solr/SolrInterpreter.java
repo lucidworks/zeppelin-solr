@@ -265,7 +265,7 @@ public class SolrInterpreter extends Interpreter {
     } else if (args.length == 2) {
       switch (args[1]){
         case "use":
-          msg = "Set a default collection for us in other commands.\\nUsage: `use <collection_name>`";
+          msg = "Set a default collection for use in other commands.\\nUsage: `use <collection_name>`";
           break;
         case "search":
           msg = "Issue a search request and display the results.\\nUsage: `search <Solr query params>`";
@@ -277,7 +277,10 @@ public class SolrInterpreter extends Interpreter {
           msg = "Issue a streaming expression request and display the results.\\nUsage: `stream <streaming-expression>`";
           break;
         case "sql":
-          msg = "Issue a SolrSQL query and display the results\\nUsage: `sql <sql-expression>`";
+          msg = "Issue a SQL query and display the results.  NOTE: Solr only supports a subset of traditional SQL " +
+                  "syntax.  See the Solr Reference Guide for details. " +
+                  "https://lucene.apache.org/solr/guide/parallel-sql-interface.html#solr-sql-syntax" +
+                  "\\nUsage: `sql <sql-expression>`";
           break;
         default:
           msg = "Command [" + args[1] + "] not supported.  Supported commands are " + COMMAND_LIST_STRING + ".";
