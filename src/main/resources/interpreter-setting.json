@@ -19,14 +19,14 @@
       "jdbc.url": {
         "envName": null,
         "propertyName": "jdbc.url",
-        "defaultValue": "jdbc:hive2://localhost:8768/default;transportMode=http;httpPath=fusion;user=admin;password=password123",
+        "defaultValue": "",
         "description": "The jdbc connection url (Only used with the jdbc Streaming Expression if the connection is not specified.))"
       },
       "jdbc.driver": {
         "envName": null,
         "propertyName": "jdbc.driver",
-        "defaultValue": "org.apache.hive.jdbc.HiveDriver",
-        "description": "The jdbc driver (Only used with the jdbc Streaming Expression if the connection is not specified.)"
+        "defaultValue": "",
+        "description": "The classname of a valid, accessible jdbc driver (Only used with the jdbc Streaming Expression if the connection is not specified.)"
       }
     },
     "editor": {
